@@ -4,6 +4,7 @@ import com.example.KweekCashLoanApp.data.repositories.RepaymentScheduleRepositor
 import com.example.KweekCashLoanApp.dtos.requests.PaymentRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ActiveLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.RepaymentScheduleResponse;
+import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,7 @@ public class RepaymentScheduleService implements IRepaymentScheduleService{
     ActiveLoansService activeLoansService;
 
     @Override
-    public String makePayment(Long customerId, PaymentRequest request) {
+    public String makePayment(Long customerId, PaymentRequest request) throws ObjectNotFoundException {
         return activeLoansService.setNewBalance(customerId,request.getAmount());
     }
 

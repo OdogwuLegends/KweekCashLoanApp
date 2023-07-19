@@ -5,6 +5,7 @@ import com.example.KweekCashLoanApp.data.repositories.ActiveLoansRepository;
 import com.example.KweekCashLoanApp.dtos.responses.ActiveLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
+import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,9 @@ public class ActiveLoansService implements IActiveLoansService{
     }
 
     @Override
-    public String setNewBalance(Long customerId, BigDecimal amountPaid) {
+    public String setNewBalance(Long customerId, BigDecimal amountPaid) throws ObjectNotFoundException {
         ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new RuntimeException("Request Not Found");
+        if(activeLoan == null) throw new ObjectNotFoundException("Request Not Found");
         if(activeLoan.getLoanStatus().equals("IN PROGRESS")){
             activeLoan.setTotalAmountRepaid(activeLoan.getTotalAmountRepaid().add(amountPaid));
             activeLoan.setBalance(activeLoan.getLoanAmount().subtract(activeLoan.getTotalAmountRepaid()));

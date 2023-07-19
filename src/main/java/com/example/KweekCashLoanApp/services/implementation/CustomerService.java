@@ -104,9 +104,9 @@ public class CustomerService implements ICustomerService{
     }
 
     @Override
-    public FindUserResponse findCustomerByEmail(String email) {
+    public FindUserResponse findCustomerByEmail(String email) throws ObjectNotFoundException {
         Customer foundCustomer = customerRepository.findCustomerByEmail(email);
-        if(foundCustomer == null) throw new RuntimeException("Customer not found");
+        if(foundCustomer == null) throw new ObjectNotFoundException("Customer not found");
 
         FindUserResponse response = new FindUserResponse();
 
@@ -125,10 +125,10 @@ public class CustomerService implements ICustomerService{
     }
 
     @Override
-    public UpdateUserResponse updateCustomerDetails(UpdateUserRequest request) {
+    public UpdateUserResponse updateCustomerDetails(UpdateUserRequest request) throws ObjectNotFoundException {
         Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail());
         if(Objects.isNull(foundCustomer)){
-            throw new RuntimeException("Email not correct");
+            throw new ObjectNotFoundException("Email not correct");
         }
         if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(""))foundCustomer.setFirstName(request.getFirstName());
         if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(""))foundCustomer.setLastName(request.getLastName());
@@ -149,7 +149,7 @@ public class CustomerService implements ICustomerService{
     }
 
     @Override
-    public String makePayment(PaymentRequest request) {
+    public String makePayment(PaymentRequest request) throws ObjectNotFoundException {
         Customer customer = customerRepository.findCustomerByEmail(request.getEmail());
         Long id = customer.getCustomerId();
         return repaymentScheduleService.makePayment(id,request);

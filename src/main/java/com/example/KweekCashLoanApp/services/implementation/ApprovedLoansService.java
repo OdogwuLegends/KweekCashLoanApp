@@ -4,6 +4,7 @@ import com.example.KweekCashLoanApp.data.models.ApprovedLoanRequests;
 import com.example.KweekCashLoanApp.data.repositories.ApprovedLoanRequestsRepository;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
+import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,11 @@ public class ApprovedLoansService implements IApprovedLoansService{
     }
 
     @Override
-    public ApprovedLoanResponse findRequestByUniqueCode(LoanApplicationRequest request) {
+    public ApprovedLoanResponse findRequestByUniqueCode(LoanApplicationRequest request) throws ObjectNotFoundException {
         ApprovedLoanRequests approvedRequest = approvedLoanRequestsRepository.findByUniqueCode(request.getUniqueCode());
+        if(approvedRequest == null){
+            throw new ObjectNotFoundException("Request Not Found");
+        }
         ApprovedLoanResponse response = new ApprovedLoanResponse();
         BeanUtils.copyProperties(approvedRequest,response);
         return response;
