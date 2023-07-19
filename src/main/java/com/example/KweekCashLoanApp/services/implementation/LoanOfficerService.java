@@ -1,11 +1,16 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.AppUtils;
 import com.example.KweekCashLoanApp.data.models.*;
 import com.example.KweekCashLoanApp.data.repositories.LoanOfficerRepository;
 import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
+import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
+import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
+import com.example.KweekCashLoanApp.services.interfaces.ILoanOfficerService;
+import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +26,7 @@ import static com.example.KweekCashLoanApp.data.enums.LoanStatus.*;
 
 @Slf4j
 @Service
-public class LoanOfficerService implements ILoanOfficerService{
+public class LoanOfficerService implements ILoanOfficerService {
     @Autowired
     LoanOfficerRepository loanOfficerRepository;
     @Autowired
@@ -37,16 +42,8 @@ public class LoanOfficerService implements ILoanOfficerService{
 
 
     @Override
-    public RegisterUserResponse registerLoanOfficer(RegisterUserRequest request) {
-        if(request.getPhoneNumber().length() != 11 && request.getPhoneNumber().length() != 14){
-            throw new RuntimeException("Invalid Phone Number entered");
-        }
-        if(!AppUtils.emailIsCorrect(request.getEmail())){
-            throw new RuntimeException("Invalid email");
-        }
-        if(!AppUtils.passwordIsCorrect(request.getPassword())){
-            throw new RuntimeException("Invalid password.");
-        }
+    public RegisterUserResponse registerLoanOfficer(RegisterUserRequest request) throws IncorrectDetailsException {
+        validateDetails(request);
 
         LoanOfficer newLoanOfficer = new LoanOfficer();
         BeanUtils.copyProperties(request,newLoanOfficer);
@@ -111,9 +108,7 @@ public class LoanOfficerService implements ILoanOfficerService{
 
     @Override
     public List<PendingLoanResponse> seePendingLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        boolean isAdmin = loanOfficerRepository.existsByAdminLoginCode(request.getAdminLoginCode());
-        if(!isAdmin) throw new ObjectNotFoundException("Incorrect Admin Log in Code");
-
+        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
 
         List<PendingLoanRequests> allRequests = pendingLoansService.findAllPendingRequests();
         if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Pending Loan Requests");
@@ -145,10 +140,7 @@ public class LoanOfficerService implements ILoanOfficerService{
 
     @Override
     public List<ApprovedLoanResponse> seeApprovedLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-
-        //LoanOfficer foundOfficer = loanOfficerRepository.findLoanOfficerByAdminLoginCode(code).orElseThrow(() -> new RuntimeException("Incorrect Admin Log in Code"));
-        boolean isAdmin = loanOfficerRepository.existsByAdminLoginCode(request.getAdminLoginCode());
-        if(!isAdmin) throw new ObjectNotFoundException("Incorrect Admin Log in Code");
+        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
 
         List<ApprovedLoanRequests> allRequests = approvedLoansService.findAllApprovedRequests();
         if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Approved Loan Requests");
@@ -166,11 +158,9 @@ public class LoanOfficerService implements ILoanOfficerService{
 
     @Override
     public List<ActiveLoanResponse> seeActiveLoans(LoanUpdateRequest request) throws ObjectNotFoundException {
-        boolean isAdmin = loanOfficerRepository.existsByAdminLoginCode(request.getAdminLoginCode());
-        if(!isAdmin) throw new ObjectNotFoundException("Incorrect Admin Log in Code");
-
+        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
         List<ActiveLoans> allRequests = activeLoansService.findAllActiveLoans();
-        if(allRequests.isEmpty()) throw new RuntimeException("No Active Loans");
+        if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Active Loans");
 
         List<ActiveLoanResponse> activeLoanResponse = new ArrayList<>();
 
@@ -184,8 +174,9 @@ public class LoanOfficerService implements ILoanOfficerService{
 
     @Override
     public List<RejectedLoanResponse> seeRejectedLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        boolean isAdmin = loanOfficerRepository.existsByAdminLoginCode(request.getAdminLoginCode());
-        if(!isAdmin) throw new ObjectNotFoundException("Incorrect Admin Log in Code");
+        System.out.println("Request "+request.getAdminLoginCode());
+        log.info("Request "+request.getAdminLoginCode());
+        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
 
         List<RejectedLoanRequests> allRequests = rejectedLoansService.findAllRejectedRequest();
         if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Rejected Loan Requests");
@@ -202,12 +193,7 @@ public class LoanOfficerService implements ILoanOfficerService{
 
     @Override
     public String reviewLoanRequest(LoanUpdateRequest request) throws ObjectNotFoundException {
-        boolean isAdmin = loanOfficerRepository.existsByAdminLoginCode(request.getAdminLoginCode());
-        if(!isAdmin) throw new ObjectNotFoundException("Incorrect Admin Log in Code");
-
-        boolean isSameAdmin = loanOfficerRepository.existsByAdminLoginCodeAndAuthorizationCode(request.getAdminLoginCode(),request.getAuthorizationCode());
-        if(!isSameAdmin) throw new ObjectNotFoundException("Incorrect Authorization Token");
-
+        loanOfficerRepository.findLoanOfficerByAdminLoginCodeAndAuthorizationCode(request.getAdminLoginCode(),request.getAuthorizationCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect details"));
         return pendingLoansService.updateRequestDetails(request);
     }
 

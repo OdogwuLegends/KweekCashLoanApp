@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.dtos.responses;
+package com.example.KweekCashLoanApp.error;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -1,10 +1,11 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.data.models.ApprovedLoanRequests;
 import com.example.KweekCashLoanApp.data.repositories.ApprovedLoanRequestsRepository;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ApprovedLoansService implements IApprovedLoansService{
+public class ApprovedLoansService implements IApprovedLoansService {
 
     @Autowired
     ApprovedLoanRequestsRepository approvedLoanRequestsRepository;

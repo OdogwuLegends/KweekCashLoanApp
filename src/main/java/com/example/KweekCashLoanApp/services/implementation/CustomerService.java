@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.AppUtils;
 import com.example.KweekCashLoanApp.data.models.Customer;
@@ -6,7 +6,10 @@ import com.example.KweekCashLoanApp.data.repositories.ApprovedLoanRequestsReposi
 import com.example.KweekCashLoanApp.data.repositories.CustomerRepository;
 import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
+import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.ICustomerService;
+import com.example.KweekCashLoanApp.services.interfaces.IPendingLoansService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,8 +17,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Objects;
 
+import static com.example.KweekCashLoanApp.AppUtils.validateDetails;
+
 @Service
-public class CustomerService implements ICustomerService{
+public class CustomerService implements ICustomerService {
     @Autowired
     CustomerRepository customerRepository;
     @Autowired
@@ -26,16 +31,8 @@ public class CustomerService implements ICustomerService{
     RepaymentScheduleService repaymentScheduleService;
 
     @Override
-    public RegisterUserResponse registerCustomer(RegisterUserRequest request) {
-        if(request.getPhoneNumber().length() != 11 && request.getPhoneNumber().length() != 14){
-            throw new RuntimeException("Invalid Phone Number entered");
-        }
-        if(!AppUtils.emailIsCorrect(request.getEmail())){
-            throw new RuntimeException("Invalid email");
-        }
-        if(!AppUtils.passwordIsCorrect(request.getPassword())){
-            throw new RuntimeException("Invalid password.");
-        }
+    public RegisterUserResponse registerCustomer(RegisterUserRequest request) throws IncorrectDetailsException {
+        validateDetails(request);
 
         Customer newCustomer = new Customer();
         BeanUtils.copyProperties(request,newCustomer);
@@ -48,6 +45,8 @@ public class CustomerService implements ICustomerService{
 
         return response;
     }
+
+
 
     public LoginResponse logIn(LoginRequest request) throws ObjectNotFoundException {
         Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail());
@@ -71,7 +70,7 @@ public class CustomerService implements ICustomerService{
     }
 
     @Override
-    public LoanApplicationResponse checkApplicationStatus(LoanApplicationRequest request) {
+    public LoanApplicationResponse checkApplicationStatus(LoanApplicationRequest request) throws IncorrectDetailsException {
         return pendingLoansService.confirmStatus(request);
     }
 
@@ -98,7 +97,6 @@ public class CustomerService implements ICustomerService{
         response.setPhoneNumber(foundCustomer.getPhoneNumber());
         response.setAddress(address);
         response.setOccupation(foundCustomer.getOccupation());
-        response.setId(foundCustomer.getCustomerId());
 
         return response;
     }
@@ -119,7 +117,6 @@ public class CustomerService implements ICustomerService{
         response.setPhoneNumber(foundCustomer.getPhoneNumber());
         response.setAddress(address);
         response.setOccupation(foundCustomer.getOccupation());
-        response.setId(foundCustomer.getCustomerId());
 
         return response;
     }
@@ -130,16 +127,17 @@ public class CustomerService implements ICustomerService{
         if(Objects.isNull(foundCustomer)){
             throw new ObjectNotFoundException("Email not correct");
         }
+
         if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(""))foundCustomer.setFirstName(request.getFirstName());
         if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(""))foundCustomer.setLastName(request.getLastName());
         if(Objects.nonNull(request.getNewEmail()) && !request.getNewEmail().equals(""))foundCustomer.setEmail(request.getNewEmail());
         if(Objects.nonNull(request.getNewPassword()) && !request.getNewPassword().equals(""))foundCustomer.setPassword(request.getNewPassword());
         if(Objects.nonNull(request.getPhoneNumber()) && !request.getPhoneNumber().equals(""))foundCustomer.setPhoneNumber(request.getPhoneNumber());
-        if(Objects.nonNull(request.getOccupation()) && !request.getOccupation().equals(""))foundCustomer.setOccupation(request.getOccupation());
         if(Objects.nonNull(request.getStreetNumber()) && !request.getStreetNumber().equals(""))foundCustomer.setStreetNumber(request.getStreetNumber());
         if(Objects.nonNull(request.getStreetName()) && !request.getStreetName().equals(""))foundCustomer.setStreetName(request.getStreetName());
         if(Objects.nonNull(request.getTown()) && !request.getTown().equals(""))foundCustomer.setTown(request.getTown());
         if(Objects.nonNull(request.getState()) && !request.getState().equals(""))foundCustomer.setState(request.getState());
+        if(Objects.nonNull(request.getOccupation()) && !request.getOccupation().equals(""))foundCustomer.setOccupation(request.getOccupation());
 
         Customer updatedCustomer = customerRepository.save(foundCustomer);
         UpdateUserResponse response = new UpdateUserResponse();
@@ -156,7 +154,7 @@ public class CustomerService implements ICustomerService{
     }
 
     @Override
-    public String checkLoanBalance(PaymentRequest request) {
+    public String checkLoanBalance(PaymentRequest request) throws ObjectNotFoundException {
         Customer customer = customerRepository.findCustomerByEmail(request.getEmail());
         Long id = customer.getCustomerId();
         return repaymentScheduleService.checkBalance(id).toString();

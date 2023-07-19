@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.AppUtils;
 import com.example.KweekCashLoanApp.Map;
@@ -11,6 +11,12 @@ import com.example.KweekCashLoanApp.dtos.requests.LoanUpdateRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.LoanApplicationResponse;
 import com.example.KweekCashLoanApp.dtos.responses.PendingLoanResponse;
+import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
+import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
+import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
+import com.example.KweekCashLoanApp.services.interfaces.IPendingLoansService;
+import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +29,7 @@ import static com.example.KweekCashLoanApp.AppUtils.*;
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.*;
 
 @Service
-public class PendingLoansService implements  IPendingLoansService{
+public class PendingLoansService implements IPendingLoansService {
     @Autowired
     PendingLoanRequestsRepository pendingLoanRequestsRepository;
     @Autowired
@@ -50,13 +56,12 @@ public class PendingLoansService implements  IPendingLoansService{
         loanRequest.setDateOfApplication(LocalDate.now());
 
         pendingLoanRequestsRepository.save(loanRequest);
-
         return response;
     }
     @Override
-    public LoanApplicationResponse confirmStatus(LoanApplicationRequest request) {
+    public LoanApplicationResponse confirmStatus(LoanApplicationRequest request) throws IncorrectDetailsException {
         PendingLoanRequests foundApplication = pendingLoanRequestsRepository.findLoanRequestsByUniqueCode(request.getUniqueCode());
-        if(foundApplication == null)throw new RuntimeException("Incorrect Unique Code Entered");
+        if(foundApplication == null)throw new IncorrectDetailsException("Incorrect Unique Code Entered");
         LoanApplicationResponse response = new LoanApplicationResponse();
 
         if(foundApplication.getLoanStatus() == AWAITING_APPROVAL){
@@ -70,10 +75,10 @@ public class PendingLoansService implements  IPendingLoansService{
     }
 
     @Override
-    public PendingLoanResponse findRequestById(Long id) {
+    public PendingLoanResponse findRequestById(Long id) throws ObjectNotFoundException {
         PendingLoanRequests foundRequest = pendingLoanRequestsRepository.findById(id).get();
         if(foundRequest == null){
-            throw new RuntimeException("Loan Request Not Found");
+            throw new ObjectNotFoundException("Loan Request Not Found");
         }
 
         PendingLoanResponse response = new PendingLoanResponse();
@@ -88,9 +93,9 @@ public class PendingLoansService implements  IPendingLoansService{
     }
 
     @Override
-    public String updateRequestDetails(LoanUpdateRequest request) {
+    public String updateRequestDetails(LoanUpdateRequest request) throws ObjectNotFoundException {
         Optional<PendingLoanRequests> foundRequestOptional = pendingLoanRequestsRepository.findById(request.getLoanRequestId());
-        PendingLoanRequests foundRequest = foundRequestOptional.orElseThrow(() -> new RuntimeException("Loan request not found"));
+        PendingLoanRequests foundRequest = foundRequestOptional.orElseThrow(() -> new ObjectNotFoundException("Loan request not found"));
 
         foundRequest.setLoanStatus(request.getLoanStatus());
         foundRequest.setOptionalMessage(request.getMessage());

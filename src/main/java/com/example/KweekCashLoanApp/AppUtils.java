@@ -2,6 +2,8 @@ package com.example.KweekCashLoanApp;
 
 import com.example.KweekCashLoanApp.data.enums.LoanStatus;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
+import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
+import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AppUtils {
-
     public static boolean emailIsCorrect(String email){
         String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         Pattern pattern = Pattern.compile(regex);
@@ -113,5 +114,17 @@ public class AppUtils {
     public static LocalDate stringToLocalDate(String userInput) {
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return LocalDate.parse(userInput, dateFormatter);
+    }
+
+    public static void validateDetails(RegisterUserRequest request) throws IncorrectDetailsException {
+        if(request.getPhoneNumber().length() != 11 && request.getPhoneNumber().length() != 14){
+            throw new IncorrectDetailsException("Invalid Phone Number entered");
+        }
+        if(!AppUtils.emailIsCorrect(request.getEmail())){
+            throw new IncorrectDetailsException("Invalid email");
+        }
+        if(!AppUtils.passwordIsCorrect(request.getPassword())){
+            throw new IncorrectDetailsException("Invalid password.");
+        }
     }
 }

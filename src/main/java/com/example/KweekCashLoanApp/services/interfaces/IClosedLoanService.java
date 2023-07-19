@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.interfaces;
 
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
 

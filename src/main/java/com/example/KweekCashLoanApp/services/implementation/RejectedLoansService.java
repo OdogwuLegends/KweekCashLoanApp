@@ -1,8 +1,9 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.data.models.PendingLoanRequests;
 import com.example.KweekCashLoanApp.data.models.RejectedLoanRequests;
 import com.example.KweekCashLoanApp.data.repositories.RejectedLoanRequestsRepository;
+import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class RejectedLoansService implements IRejectedLoansService{
+public class RejectedLoansService implements IRejectedLoansService {
     @Autowired
     RejectedLoanRequestsRepository rejectedLoanRequestsRepository;
 

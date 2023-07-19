@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.interfaces;
 
 import com.example.KweekCashLoanApp.data.models.ActiveLoans;
 import com.example.KweekCashLoanApp.dtos.responses.ActiveLoanResponse;
@@ -13,5 +13,5 @@ public interface IActiveLoansService {
     ActiveLoanResponse findByCustomerId(Long id);
     List<ActiveLoans> findAllActiveLoans();
     String setNewBalance(Long customerId, BigDecimal amountPaid) throws ObjectNotFoundException;
-    ActiveLoanResponse getLoanDetails(Long customerId);
+    ActiveLoanResponse getLoanDetails(Long customerId) throws ObjectNotFoundException;
 }

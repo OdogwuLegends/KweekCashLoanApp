@@ -1,14 +1,15 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.data.models.ClosedLoans;
 import com.example.KweekCashLoanApp.data.repositories.ClosedLoanRepository;
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
+import com.example.KweekCashLoanApp.services.interfaces.IClosedLoanService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ClosedLoanService implements IClosedLoanService{
+public class ClosedLoanService implements IClosedLoanService {
     @Autowired
     ClosedLoanRepository closedLoanRepository;
 

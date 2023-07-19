@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.services;
+package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.data.models.ActiveLoans;
 import com.example.KweekCashLoanApp.data.repositories.ActiveLoansRepository;
@@ -6,6 +6,7 @@ import com.example.KweekCashLoanApp.dtos.responses.ActiveLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import static com.example.KweekCashLoanApp.data.enums.LoanStatus.IN_PROGRESS;
 
 @Service
 @Slf4j
-public class ActiveLoansService implements IActiveLoansService{
+public class ActiveLoansService implements IActiveLoansService {
     @Autowired
     ActiveLoansRepository activeLoansRepository;
     @Autowired
@@ -73,9 +74,9 @@ public class ActiveLoansService implements IActiveLoansService{
     }
 
     @Override
-    public ActiveLoanResponse getLoanDetails(Long customerId) {
+    public ActiveLoanResponse getLoanDetails(Long customerId) throws ObjectNotFoundException {
         ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new RuntimeException("Request Not Found");
+        if(activeLoan == null) throw new ObjectNotFoundException("Request Not Found");
 
         ActiveLoanResponse response = new ActiveLoanResponse();
         BeanUtils.copyProperties(activeLoan,response);
