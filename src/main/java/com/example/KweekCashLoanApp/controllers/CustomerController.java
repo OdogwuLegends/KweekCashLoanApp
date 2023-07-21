@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/customer")
 public class CustomerController {
+    private final ICustomerService customerService;
+    private final LoanOfficerController loanOfficerController;
     @Autowired
-    ICustomerService customerService;
-    @Autowired
-    LoanOfficerController loanOfficerController;
+    public CustomerController(ICustomerService customerService,LoanOfficerController loanOfficerController){
+        this.customerService = customerService;
+        this.loanOfficerController = loanOfficerController;
+    }
 
     @PostMapping("/signUp")
     public String createAccount(@RequestBody RegisterUserRequest request){
-//        log.info(String.valueOf(request));
         try {
             return customerService.registerCustomer(request).toString();
         } catch (IncorrectDetailsException e) {

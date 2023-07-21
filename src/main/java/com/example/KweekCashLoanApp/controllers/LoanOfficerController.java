@@ -18,8 +18,12 @@ import java.util.List;
 @RequestMapping("/loanOfficer")
 @Slf4j
 public class LoanOfficerController {
+    private final ILoanOfficerService loanOfficerService;
+
     @Autowired
-    ILoanOfficerService loanOfficerService;
+    public LoanOfficerController(ILoanOfficerService loanOfficerService){
+        this.loanOfficerService = loanOfficerService;
+    }
 
     @PostMapping("/signUp")
     public String createLoanOfficerAccount(@RequestBody RegisterUserRequest request){
