@@ -14,9 +14,11 @@ import java.util.List;
 
 @Service
 public class ApprovedLoansService implements IApprovedLoansService {
-
+     private ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
     @Autowired
-    ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
+    public ApprovedLoansService(ApprovedLoanRequestsRepository approvedLoanRequestsRepository){
+        this.approvedLoanRequestsRepository = approvedLoanRequestsRepository;
+    }
     @Override
     public ApprovedLoanResponse saveApprovedRequest(ApprovedLoanRequests requests) {
         ApprovedLoanRequests savedRequest = approvedLoanRequestsRepository.save(requests);

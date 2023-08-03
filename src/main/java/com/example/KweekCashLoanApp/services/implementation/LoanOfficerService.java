@@ -1,6 +1,5 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.AppUtils;
 import com.example.KweekCashLoanApp.data.models.*;
 import com.example.KweekCashLoanApp.data.repositories.LoanOfficerRepository;
 import com.example.KweekCashLoanApp.dtos.requests.*;
@@ -22,23 +21,30 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.example.KweekCashLoanApp.AppUtils.*;
-import static com.example.KweekCashLoanApp.data.enums.LoanStatus.*;
+import static com.example.KweekCashLoanApp.data.enums.LoanStatus.AWAITING_APPROVAL;
 
 @Slf4j
 @Service
 public class LoanOfficerService implements ILoanOfficerService {
+    private LoanOfficerRepository loanOfficerRepository;
+    private PendingLoansService pendingLoansService;
+    private CustomerService customerService;
+    private IApprovedLoansService approvedLoansService;
+    private IRejectedLoansService rejectedLoansService;
+    private IActiveLoansService activeLoansService;
+
     @Autowired
-    LoanOfficerRepository loanOfficerRepository;
-    @Autowired
-    PendingLoansService pendingLoansService;
-    @Autowired
-    CustomerService customerService;
-    @Autowired
-    IApprovedLoansService approvedLoansService;
-    @Autowired
-    IRejectedLoansService rejectedLoansService;
-    @Autowired
-    IActiveLoansService activeLoansService;
+    public LoanOfficerService(LoanOfficerRepository loanOfficerRepository,PendingLoansService pendingLoansService,
+                              CustomerService customerService, IApprovedLoansService approvedLoansService,
+                              IRejectedLoansService rejectedLoansService,IActiveLoansService activeLoansService
+                                ){
+        this.loanOfficerRepository = loanOfficerRepository;
+        this.activeLoansService = activeLoansService;
+        this.customerService = customerService;
+        this.rejectedLoansService = rejectedLoansService;
+        this.pendingLoansService = pendingLoansService;
+        this.approvedLoansService = approvedLoansService;
+    }
 
 
     @Override

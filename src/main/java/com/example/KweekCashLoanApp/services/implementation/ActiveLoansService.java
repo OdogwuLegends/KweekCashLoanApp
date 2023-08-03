@@ -21,10 +21,13 @@ import static com.example.KweekCashLoanApp.data.enums.LoanStatus.IN_PROGRESS;
 @Service
 @Slf4j
 public class ActiveLoansService implements IActiveLoansService {
+    private ActiveLoansRepository activeLoansRepository;
+    private ClosedLoanService closedLoanService;
     @Autowired
-    ActiveLoansRepository activeLoansRepository;
-    @Autowired
-    ClosedLoanService closedLoanService;
+    public ActiveLoansService(ActiveLoansRepository activeLoansRepository,ClosedLoanService closedLoanService){
+        this.activeLoansRepository = activeLoansRepository;
+        this.closedLoanService = closedLoanService;
+    }
     @Override
     public ActiveLoanResponse saveActiveLoans(ApprovedLoanResponse response) {
         ActiveLoans activeLoans = new ActiveLoans();

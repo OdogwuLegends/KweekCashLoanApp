@@ -1,6 +1,5 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.AppUtils;
 import com.example.KweekCashLoanApp.data.models.Customer;
 import com.example.KweekCashLoanApp.data.repositories.ApprovedLoanRequestsRepository;
 import com.example.KweekCashLoanApp.data.repositories.CustomerRepository;
@@ -21,14 +20,19 @@ import static com.example.KweekCashLoanApp.AppUtils.validateDetails;
 
 @Service
 public class CustomerService implements ICustomerService {
+    private CustomerRepository customerRepository;
+    private IPendingLoansService pendingLoansService;
+    private ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
+    private RepaymentScheduleService repaymentScheduleService;
+
     @Autowired
-    CustomerRepository customerRepository;
-    @Autowired
-    IPendingLoansService pendingLoansService;
-    @Autowired
-    ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
-    @Autowired
-    RepaymentScheduleService repaymentScheduleService;
+    public CustomerService(CustomerRepository customerRepository,IPendingLoansService pendingLoansService,
+                           RepaymentScheduleService repaymentScheduleService, ApprovedLoanRequestsRepository approvedLoanRequestsRepository){
+        this.customerRepository = customerRepository;
+        this.pendingLoansService = pendingLoansService;
+        this.approvedLoanRequestsRepository = approvedLoanRequestsRepository;
+        this.repaymentScheduleService = repaymentScheduleService;
+    }
 
     @Override
     public RegisterUserResponse registerCustomer(RegisterUserRequest request) throws IncorrectDetailsException {
@@ -159,6 +163,4 @@ public class CustomerService implements ICustomerService {
         Long id = customer.getCustomerId();
         return repaymentScheduleService.checkBalance(id).toString();
     }
-
-
 }

@@ -12,10 +12,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RepaymentScheduleService implements IRepaymentScheduleService {
+    private RepaymentScheduleRepository repaymentScheduleRepository;
+    private ActiveLoansService activeLoansService;
+
     @Autowired
-    RepaymentScheduleRepository repaymentScheduleRepository;
-    @Autowired
-    ActiveLoansService activeLoansService;
+    public RepaymentScheduleService(RepaymentScheduleRepository repaymentScheduleRepository,ActiveLoansService activeLoansService){
+        this.repaymentScheduleRepository = repaymentScheduleRepository;
+        this.activeLoansService = activeLoansService;
+    }
 
     @Override
     public String makePayment(Long customerId, PaymentRequest request) throws ObjectNotFoundException {

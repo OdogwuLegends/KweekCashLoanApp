@@ -10,8 +10,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ClosedLoanService implements IClosedLoanService {
+    private ClosedLoanRepository closedLoanRepository;
     @Autowired
-    ClosedLoanRepository closedLoanRepository;
+    public ClosedLoanService(ClosedLoanRepository closedLoanRepository){
+        this.closedLoanRepository = closedLoanRepository;
+    }
 
     @Override
     public ClosedLoanResponse saveClosedLoan(ClosedLoanResponse closedLoan) {

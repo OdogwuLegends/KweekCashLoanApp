@@ -12,8 +12,12 @@ import java.util.List;
 
 @Service
 public class RejectedLoansService implements IRejectedLoansService {
+    private RejectedLoanRequestsRepository rejectedLoanRequestsRepository;
+
     @Autowired
-    RejectedLoanRequestsRepository rejectedLoanRequestsRepository;
+    public RejectedLoansService(RejectedLoanRequestsRepository rejectedLoanRequestsRepository){
+        this.rejectedLoanRequestsRepository = rejectedLoanRequestsRepository;
+    }
 
     @Override
     public String saveRejectedRequest(PendingLoanRequests foundRequest) {

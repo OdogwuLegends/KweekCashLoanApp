@@ -30,14 +30,19 @@ import static com.example.KweekCashLoanApp.data.enums.LoanStatus.*;
 
 @Service
 public class PendingLoansService implements IPendingLoansService {
+    private PendingLoanRequestsRepository pendingLoanRequestsRepository;
+    private IApprovedLoansService approvedLoansService;
+    private IRejectedLoansService rejectedLoansService;
+    private IActiveLoansService activeLoansService;
+
     @Autowired
-    PendingLoanRequestsRepository pendingLoanRequestsRepository;
-    @Autowired
-    IApprovedLoansService approvedLoansService;
-    @Autowired
-    IRejectedLoansService rejectedLoansService;
-    @Autowired
-    IActiveLoansService activeLoansService;
+    public PendingLoansService(PendingLoanRequestsRepository pendingLoanRequestsRepository,IApprovedLoansService approvedLoansService,
+                               IRejectedLoansService rejectedLoansService,IActiveLoansService activeLoansService){
+        this.pendingLoanRequestsRepository = pendingLoanRequestsRepository;
+        this.activeLoansService = activeLoansService;
+        this.approvedLoansService = approvedLoansService;
+        this.rejectedLoansService = rejectedLoansService;
+    }
 
     @Override
     public LoanApplicationResponse requestForALoan(LoanApplicationRequest request, Customer foundCustomer) {
