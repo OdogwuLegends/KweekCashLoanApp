@@ -6,10 +6,8 @@ import com.example.KweekCashLoanApp.data.enums.RepaymentPreference;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
 import com.example.KweekCashLoanApp.dtos.requests.LoginRequest;
 import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
-import com.example.KweekCashLoanApp.dtos.responses.FindUserResponse;
-import com.example.KweekCashLoanApp.dtos.responses.LoanApplicationResponse;
-import com.example.KweekCashLoanApp.dtos.responses.LoginResponse;
-import com.example.KweekCashLoanApp.dtos.responses.RegisterUserResponse;
+import com.example.KweekCashLoanApp.dtos.requests.UpdateUserRequest;
+import com.example.KweekCashLoanApp.dtos.responses.*;
 import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -138,6 +136,53 @@ class CustomerServiceTest {
     @Test
     void testFindCustomerWithWrongId(){
         assertThrows(ObjectNotFoundException.class, ()-> customerService.findCustomerById(150));
+    }
+    @Test
+    void testFindCustomerWithCorrectEmail(){
+        FindUserResponse response = new FindUserResponse();
+        try {
+            response = customerService.findCustomerByEmail("jackson@gmail.com");
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        assertNotNull(response);
+        assertEquals("Mike",response.getFirstName());
+    }
+    @Test
+    void testFindCustomerWithWrongEmail(){
+        assertThrows(ObjectNotFoundException.class,()-> customerService.findCustomerByEmail("cephas@gmail.com"));
+    }
+    @Test
+    void testUpdateCustomerDetailsWithCorrectLoginEmail(){
+        FindUserResponse response = new FindUserResponse();
+        try {
+            response = customerService.findCustomerByEmail("jackson@gmail.com");
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        assertNotNull(response);
+        assertEquals("Mike",response.getFirstName());
+
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setEmail("jackson@gmail.com");
+        request.setFirstName("Billie");
+
+        UpdateUserResponse updatedResponse = new UpdateUserResponse();
+        try {
+            updatedResponse = customerService.updateCustomerDetails(request);
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        assertNotNull(updatedResponse);
+        assertEquals("Billie",updatedResponse.getFirstName());
+    }
+    @Test
+    void testUpdateCustomerDetailsWithWrongLoginEmail(){
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setEmail("blackman@gmail.com");
+        request.setFirstName("Bernado");
+
+        assertThrows(ObjectNotFoundException.class,()-> customerService.updateCustomerDetails(request));
     }
     @Test
     void testApplyForLoan(){

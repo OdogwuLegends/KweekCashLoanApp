@@ -86,10 +86,6 @@ public class CustomerService implements ICustomerService {
 
     @Override
     public FindUserResponse findCustomerById(long id) throws ObjectNotFoundException {
-//        Customer foundCustomer = customerRepository.findById(id).get();
-//        if(foundCustomer == null){
-//            throw new ObjectNotFoundException("Customer Not Found");
-//        }
         Optional<Customer> foundCustomer = customerRepository.findById(id);
         if(foundCustomer.isEmpty()){
             throw new ObjectNotFoundException("Customer Not Found");

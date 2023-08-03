@@ -58,7 +58,7 @@ public class ActiveLoansService implements IActiveLoansService {
     @Override
     public String setNewBalance(Long customerId, BigDecimal amountPaid) throws ObjectNotFoundException {
         ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new ObjectNotFoundException("Request Not Found");
+        if(activeLoan == null) throw new ObjectNotFoundException("You do not have a loan running currently.");
         if(activeLoan.getLoanStatus().equals("IN PROGRESS")){
             activeLoan.setTotalAmountRepaid(activeLoan.getTotalAmountRepaid().add(amountPaid));
             activeLoan.setBalance(activeLoan.getLoanAmount().subtract(activeLoan.getTotalAmountRepaid()));
@@ -79,7 +79,7 @@ public class ActiveLoansService implements IActiveLoansService {
     @Override
     public ActiveLoanResponse getLoanDetails(Long customerId) throws ObjectNotFoundException {
         ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new ObjectNotFoundException("Request Not Found");
+        if(activeLoan == null) throw new ObjectNotFoundException("You do not have a loan running currently.");
 
         ActiveLoanResponse response = new ActiveLoanResponse();
         BeanUtils.copyProperties(activeLoan,response);
