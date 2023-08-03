@@ -1,12 +1,6 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.data.enums.LoanTenure;
-import com.example.KweekCashLoanApp.data.enums.PaymentMethod;
-import com.example.KweekCashLoanApp.data.enums.RepaymentPreference;
-import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
-import com.example.KweekCashLoanApp.dtos.requests.LoginRequest;
-import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
-import com.example.KweekCashLoanApp.dtos.requests.UpdateUserRequest;
+import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
 import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
@@ -210,6 +204,56 @@ class CustomerServiceTest {
             System.err.println(e.getMessage());
         }
         assertEquals("Awaiting approval. Please check back in 48 hours.",response.getMessage());
+    }
+    @Test
+    void testCheckBalanceOnActiveLoan(){
+        PaymentRequest request = new PaymentRequest();
+        request.setEmail("jackson@gmail.com");
+
+        String balance = null;
+        try {
+            balance = customerService.checkLoanBalance(request);
+        } catch (ObjectNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        assertEquals("\t\t\t\t\t\t\t\t\tLOAN DETAILS\n" +
+                "\n" +
+                "LOAN AMOUNT -> 600000.00\n" +
+                "TOTAL AMOUNT REPAID -> 0.00\n" +
+                "BALANCE -> 600000.00\n" +
+                "START DATE -> 2023-07-15\n" +
+                "END DATE -> 2027-06-30",balance);
+    }
+    @Test
+    void testCheckBalanceWithoutActiveLoan(){
+        PaymentRequest request = new PaymentRequest();
+        request.setEmail("legend@gmail.com");
+
+        assertThrows(ObjectNotFoundException.class,()-> customerService.checkLoanBalance(request));
+    }
+    @Test
+    void testMakePaymentOnActiveLoan(){
+        PaymentRequest request = new PaymentRequest();
+        request.setEmail("jackson@gmail.com");
+        request.setAmount(BigDecimal.valueOf(20000));
+
+        String loanBalance = null;
+        try {
+            loanBalance = customerService.makePayment(request);
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+
+        assertEquals( "Payment of N"+20000+" was successful"+
+                "\nYour current loan balance is N500000.00",loanBalance);
+    }
+    @Test
+    void testMakePaymentWithoutActiveLoan(){
+        PaymentRequest request = new PaymentRequest();
+        request.setEmail("legend@gmail.com");
+        request.setAmount(BigDecimal.valueOf(20000));
+
+        assertThrows(ObjectNotFoundException.class,()-> customerService.makePayment(request));
     }
 
 }
