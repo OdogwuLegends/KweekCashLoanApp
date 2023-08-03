@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.example.KweekCashLoanApp.AppUtils.validateDetails;
 
@@ -85,22 +86,26 @@ public class CustomerService implements ICustomerService {
 
     @Override
     public FindUserResponse findCustomerById(long id) throws ObjectNotFoundException {
-        Customer foundCustomer = customerRepository.findById(id).get();
-        if(foundCustomer == null){
+//        Customer foundCustomer = customerRepository.findById(id).get();
+//        if(foundCustomer == null){
+//            throw new ObjectNotFoundException("Customer Not Found");
+//        }
+        Optional<Customer> foundCustomer = customerRepository.findById(id);
+        if(foundCustomer.isEmpty()){
             throw new ObjectNotFoundException("Customer Not Found");
         }
 
         FindUserResponse response = new FindUserResponse();
 
-        String address = foundCustomer.getStreetNumber()+","+foundCustomer.getStreetName()+
-        ","+foundCustomer.getTown()+","+foundCustomer.getState()+".";
+        String address = foundCustomer.get().getStreetNumber()+","+foundCustomer.get().getStreetName()+
+        ","+foundCustomer.get().getTown()+","+foundCustomer.get().getState()+".";
 
-        response.setFirstName(foundCustomer.getFirstName());
-        response.setLastName(foundCustomer.getLastName());
-        response.setEmail(foundCustomer.getEmail());
-        response.setPhoneNumber(foundCustomer.getPhoneNumber());
+        response.setFirstName(foundCustomer.get().getFirstName());
+        response.setLastName(foundCustomer.get().getLastName());
+        response.setEmail(foundCustomer.get().getEmail());
+        response.setPhoneNumber(foundCustomer.get().getPhoneNumber());
         response.setAddress(address);
-        response.setOccupation(foundCustomer.getOccupation());
+        response.setOccupation(foundCustomer.get().getOccupation());
 
         return response;
     }
