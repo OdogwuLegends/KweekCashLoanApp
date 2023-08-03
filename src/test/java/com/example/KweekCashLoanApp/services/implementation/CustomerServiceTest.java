@@ -1,8 +1,11 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
+import com.example.KweekCashLoanApp.dtos.requests.LoginRequest;
 import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
+import com.example.KweekCashLoanApp.dtos.responses.LoginResponse;
 import com.example.KweekCashLoanApp.dtos.responses.RegisterUserResponse;
 import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
+import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +43,74 @@ class CustomerServiceTest {
             System.err.println(e.getMessage());;
         }
         assertEquals("Welcome "+savedCustomer.getFirstName() + " "+savedCustomer.getLastName()+". Your account creation was successful.",savedCustomer.toString());
+    }
+    @Test
+    void testToRegisterCustomerWithIncorrectEmail(){
+        RegisterUserRequest request = new RegisterUserRequest();
+
+        request.setFirstName("Chinedu");
+        request.setLastName("Ugbo");
+        request.setEmail("chiboygmail.com");
+        request.setPassword("Hello@chiBoy15");
+        request.setOccupation("Software engineer");
+        request.setPhoneNumber("08045983697");
+        request.setStreetNumber("34");
+        request.setStreetName("Curtis Jones Street");
+        request.setTown("Ikeja");
+        request.setState("Lagos");
+
+        assertThrows(IncorrectDetailsException.class,() -> customerService.registerCustomer(request));
+    }
+
+    @Test
+    void testToRegisterCustomerWithWrongPasswordFormat(){
+        RegisterUserRequest request = new RegisterUserRequest();
+
+        request.setFirstName("Chinedu");
+        request.setLastName("Ugbo");
+        request.setEmail("chiboygmail@com");
+        request.setPassword("Hello");
+        request.setOccupation("Software engineer");
+        request.setPhoneNumber("08045983697");
+        request.setStreetNumber("34");
+        request.setStreetName("Curtis Jones Street");
+        request.setTown("Ikeja");
+        request.setState("Lagos");
+
+        assertThrows(IncorrectDetailsException.class,() -> customerService.registerCustomer(request));
+    }
+
+    @Test
+    void testLoginWithCorrectDetails(){
+        LoginRequest request = new LoginRequest();
+        request.setEmail("legend@gmail.com");
+        request.setPassword("MyLeggy@1#");
+
+        LoginResponse response = new LoginResponse();
+
+        try {
+            response = customerService.logIn(request);
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+
+        assertTrue(response.isLoggedIn());
+    }
+    @Test
+    void testLoginWithWrongEmail(){
+        LoginRequest request = new LoginRequest();
+        request.setEmail("mywoman@gmail.com");
+        request.setPassword("MyLeggy@1#");
+
+        assertThrows(ObjectNotFoundException.class,()->customerService.logIn(request));
+    }
+    @Test
+    void testLoginWithWrongPassword(){
+        LoginRequest request = new LoginRequest();
+        request.setEmail("legend@gmail.com");
+        request.setPassword("myEverything98");
+
+        assertThrows(ObjectNotFoundException.class,()->customerService.logIn(request));
     }
 
 
