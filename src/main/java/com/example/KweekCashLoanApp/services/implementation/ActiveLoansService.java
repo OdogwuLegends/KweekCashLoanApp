@@ -32,7 +32,6 @@ public class ActiveLoansService implements IActiveLoansService {
     public ActiveLoanResponse saveActiveLoans(ApprovedLoanResponse response) {
         ActiveLoans activeLoans = new ActiveLoans();
         BeanUtils.copyProperties(response,activeLoans);
-//        activeLoans.setUniqueCode(response.getUniqueCode());
         activeLoans.setLoanStatus(loanStatus(IN_PROGRESS));
         activeLoans.setBalance(response.getLoanAmount());
         ActiveLoans savedLoan = activeLoansRepository.save(activeLoans);
