@@ -46,7 +46,6 @@ public class LoanOfficerService implements ILoanOfficerService {
         this.approvedLoansService = approvedLoansService;
     }
 
-
     @Override
     public RegisterUserResponse registerLoanOfficer(RegisterUserRequest request) throws IncorrectDetailsException {
         validateDetails(request);
