@@ -3,10 +3,7 @@ package com.example.KweekCashLoanApp.services.implementation;
 import com.example.KweekCashLoanApp.data.enums.LoanStatus;
 import com.example.KweekCashLoanApp.data.models.LoanOfficer;
 import com.example.KweekCashLoanApp.data.repositories.LoanOfficerRepository;
-import com.example.KweekCashLoanApp.dtos.requests.LoanUpdateRequest;
-import com.example.KweekCashLoanApp.dtos.requests.LoginRequest;
-import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
-import com.example.KweekCashLoanApp.dtos.requests.UpdateUserRequest;
+import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
 import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
@@ -14,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -330,5 +328,18 @@ class LoanOfficerServiceTest {
 
         assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.reviewLoanRequest(request));
     }
+    @Test
+    void generateLoanAgreementFormWithCorrectUniqueCode(){
+        LoanApplicationRequest request = new LoanApplicationRequest();
+        request.setUniqueCode("1hRjuDp2lM");
 
+        LoanAgreementResponse response = new LoanAgreementResponse();
+        try {
+            response = loanOfficerService.generateLoanAgreementForm(request);
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        assertThat(response).isNotNull();
+        assertEquals("Semi-Annually",response.getRepaymentPreference());
+    }
 }
