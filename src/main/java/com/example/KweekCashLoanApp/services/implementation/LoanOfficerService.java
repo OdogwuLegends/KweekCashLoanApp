@@ -179,8 +179,6 @@ public class LoanOfficerService implements ILoanOfficerService {
 
     @Override
     public List<RejectedLoanResponse> seeRejectedLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        System.out.println("Request "+request.getAdminLoginCode());
-        log.info("Request "+request.getAdminLoginCode());
         loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
 
         List<RejectedLoanRequests> allRequests = rejectedLoansService.findAllRejectedRequest();
