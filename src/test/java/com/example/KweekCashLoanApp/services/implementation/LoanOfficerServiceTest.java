@@ -320,10 +320,10 @@ class LoanOfficerServiceTest {
         assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.reviewLoanRequest(request));
     }
     @Test
-    void reviewAndRejectLoanRequestWithWrongAdminCode() {
+    void reviewAndRejectLoanRequestWithWrongAuthorizationCode() {
         LoanUpdateRequest request = new LoanUpdateRequest();
         request.setAdminLoginCode("2Nzn87TlpG");
-        request.setAuthorizationCode("6968481467");
+        request.setAuthorizationCode("6968481476");
         request.setLoanRequestId(102);
         request.setLoanStatus(REJECTED);
         request.setMessage("Bad credit check");
