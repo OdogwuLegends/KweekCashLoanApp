@@ -3,6 +3,7 @@ package com.example.KweekCashLoanApp.services.implementation;
 import com.example.KweekCashLoanApp.dtos.requests.LoginRequest;
 import com.example.KweekCashLoanApp.dtos.requests.RegisterUserRequest;
 import com.example.KweekCashLoanApp.dtos.requests.UpdateUserRequest;
+import com.example.KweekCashLoanApp.dtos.responses.FindUserResponse;
 import com.example.KweekCashLoanApp.dtos.responses.LoginResponse;
 import com.example.KweekCashLoanApp.dtos.responses.RegisterUserResponse;
 import com.example.KweekCashLoanApp.dtos.responses.UpdateUserResponse;
@@ -90,7 +91,7 @@ class LoanOfficerServiceTest {
         LoginRequest request = new LoginRequest();
         request.setPassword("BigEnzo@98");
         request.setEmail("enzomoney@gmail.com");
-        request.setAdminLoginCode("lp1yA38VCT");
+        request.setAdminLoginCode("6XIdAcI92M");
 
         LoginResponse response = new LoginResponse();
         try {
@@ -106,7 +107,7 @@ class LoanOfficerServiceTest {
         LoginRequest request = new LoginRequest();
         request.setPassword("BigEnzo@98");
         request.setEmail("enzo@gmail.com");
-        request.setAdminLoginCode("dxyLQ23XZn");
+        request.setAdminLoginCode("6XIdAcI92M");
 
         assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.login(request));
     }
@@ -115,7 +116,7 @@ class LoanOfficerServiceTest {
         LoginRequest request = new LoginRequest();
         request.setPassword("BigEnzo@99");
         request.setEmail("enzomoney@gmail.com");
-        request.setAdminLoginCode("dxyLQ23XZn");
+        request.setAdminLoginCode("6XIdAcI92M");
 
         assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.login(request));
     }
@@ -124,17 +125,25 @@ class LoanOfficerServiceTest {
         LoginRequest request = new LoginRequest();
         request.setPassword("BigEnzo@98");
         request.setEmail("enzomoney@gmail.com");
-        request.setAdminLoginCode("dxyLQ23Zn");
+        request.setAdminLoginCode("6XIdAcI9");
 
         assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.login(request));
     }
 
     @Test
     void updateLoanOfficerDetails(){
-        UpdateUserRequest request = new UpdateUserRequest();
+        FindUserResponse response = new FindUserResponse();
+        try {
+            response = loanOfficerService.("jackson@gmail.com");
+        } catch (ObjectNotFoundException e) {
+            System.err.println(e.getMessage());
+        }
+        assertNotNull(response);
+        assertEquals("Benjamin",response.getFirstName());
 
-        request.setEmail("enzomoney@gmail.com");
-        request.setFirstName("Pablo");
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setEmail("ename@gmail.com");
+        request.setFirstName("Inyang");
 
         UpdateUserResponse response = new UpdateUserResponse();
         try {

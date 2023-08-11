@@ -7,8 +7,6 @@ import java.util.Optional;
 
 
 public interface LoanOfficerRepository extends JpaRepository<LoanOfficer, Long> {
-        //THIS METHOD DIDNT WORK
-//    Optional<LoanOfficer> findLoanOfficerByAdminLoginCode(String code);
     LoanOfficer findLoanOfficerByEmail(String email);
 
     LoanOfficer findLoanOfficerByAuthorizationCode(String code);
