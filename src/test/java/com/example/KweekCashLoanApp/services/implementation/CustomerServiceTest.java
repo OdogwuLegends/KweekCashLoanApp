@@ -19,7 +19,6 @@ class CustomerServiceTest {
     @Autowired
     private CustomerService customerService;
 
-
     @Test
     void testCustomerServiceNotNull(){
         assertNotNull(customerService);
@@ -96,7 +95,7 @@ class CustomerServiceTest {
         } catch (ObjectNotFoundException e) {
             System.err.println(e.getMessage());
         }
-
+        assertNotNull(response);
         assertTrue(response.isLoggedIn());
         assertEquals("Log in successful",response.getMessage());
     }
@@ -120,7 +119,7 @@ class CustomerServiceTest {
     void testFindCustomerByCorrectId(){
         FindUserResponse response = new FindUserResponse();
         try {
-            response = customerService.findCustomerById(2);
+            response = customerService.findCustomerById(1);
         } catch (ObjectNotFoundException e) {
             System.err.println(e.getMessage());
         }
@@ -135,12 +134,12 @@ class CustomerServiceTest {
     void testFindCustomerWithCorrectEmail(){
         FindUserResponse response = new FindUserResponse();
         try {
-            response = customerService.findCustomerByEmail("jackson@gmail.com");
+            response = customerService.findCustomerByEmail("legend@gmail.com");
         } catch (ObjectNotFoundException e) {
             System.err.println(e.getMessage());
         }
         assertNotNull(response);
-        assertEquals("Mike",response.getFirstName());
+        assertEquals("Caterer",response.getOccupation());
     }
     @Test
     void testFindCustomerWithWrongEmail(){
@@ -155,7 +154,7 @@ class CustomerServiceTest {
             System.err.println(e.getMessage());
         }
         assertNotNull(response);
-        assertEquals("Mike",response.getFirstName());
+        assertEquals("Benjamin",response.getFirstName());
 
         UpdateUserRequest request = new UpdateUserRequest();
         request.setEmail("jackson@gmail.com");
@@ -191,11 +190,12 @@ class CustomerServiceTest {
         LoanApplicationResponse response = customerService.applyForALoan(request);
         assertNotNull(response);
         assertEquals("John",response.getFirstName());
+        assertEquals(BigDecimal.valueOf(500000),response.getLoanAmount());
     }
     @Test
     void testCheckLoanApplicationStatus(){
         LoanApplicationRequest request = new LoanApplicationRequest();
-        request.setUniqueCode("iI7rUGEvn7");
+        request.setUniqueCode("1hRjuDp2lM");
 
         LoanApplicationResponse response = new LoanApplicationResponse();
         try {

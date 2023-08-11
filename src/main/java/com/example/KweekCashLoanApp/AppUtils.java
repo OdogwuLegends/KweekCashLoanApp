@@ -118,7 +118,7 @@ public class AppUtils {
 
     public static void validateDetails(RegisterUserRequest request) throws IncorrectDetailsException {
         if(request.getPhoneNumber().length() != 11 && request.getPhoneNumber().length() != 14){
-            throw new IncorrectDetailsException("Invalid Phone Number entered");
+            throw new IncorrectDetailsException("Password should be at least 8 characters long,\nshould contain uppercase letter,lowercase letter, a number and a special character");
         }
         if(!AppUtils.emailIsCorrect(request.getEmail())){
             throw new IncorrectDetailsException("Invalid email");

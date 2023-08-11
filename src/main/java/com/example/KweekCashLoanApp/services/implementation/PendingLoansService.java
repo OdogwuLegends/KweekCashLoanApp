@@ -60,7 +60,8 @@ public class PendingLoansService implements IPendingLoansService {
         loanRequest.setPaymentMethod(paymentMethod(request));
         loanRequest.setDateOfApplication(LocalDate.now());
 
-        pendingLoanRequestsRepository.save(loanRequest);
+        PendingLoanRequests savedRequest = pendingLoanRequestsRepository.save(loanRequest);
+        BeanUtils.copyProperties(savedRequest, response);
         return response;
     }
     @Override
