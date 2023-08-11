@@ -309,13 +309,26 @@ class LoanOfficerServiceTest {
         assertEquals("Review Successful",response);
     }
     @Test
-    void reviewAndRejectLoanRequestWithCorrectLoginDetails() {
+    void reviewAndRejectLoanRequestWithWrongAdminCode() {
         LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
+        request.setAdminLoginCode("2Nzn87TlpG");
         request.setAuthorizationCode("6968481467");
         request.setLoanRequestId(102);
         request.setLoanStatus(REJECTED);
         request.setMessage("Bad credit check");
+
+        assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.reviewLoanRequest(request));
+    }
+    @Test
+    void reviewAndRejectLoanRequestWithWrongAdminCode() {
+        LoanUpdateRequest request = new LoanUpdateRequest();
+        request.setAdminLoginCode("2Nzn87TlpG");
+        request.setAuthorizationCode("6968481467");
+        request.setLoanRequestId(102);
+        request.setLoanStatus(REJECTED);
+        request.setMessage("Bad credit check");
+
+        assertThrows(ObjectNotFoundException.class,()-> loanOfficerService.reviewLoanRequest(request));
     }
 
 }
