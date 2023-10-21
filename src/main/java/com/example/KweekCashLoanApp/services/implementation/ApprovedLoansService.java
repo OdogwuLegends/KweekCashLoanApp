@@ -6,19 +6,20 @@ import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.REQUEST_NOT_FOUND;
+
 @Service
+@AllArgsConstructor
 public class ApprovedLoansService implements IApprovedLoansService {
-     private ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
-    @Autowired
-    public ApprovedLoansService(ApprovedLoanRequestsRepository approvedLoanRequestsRepository){
-        this.approvedLoanRequestsRepository = approvedLoanRequestsRepository;
-    }
+     private final ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
+
     @Override
     public ApprovedLoanResponse saveApprovedRequest(ApprovedLoanRequests requests) {
         ApprovedLoanRequests savedRequest = approvedLoanRequestsRepository.save(requests);
@@ -30,10 +31,8 @@ public class ApprovedLoansService implements IApprovedLoansService {
 
     @Override
     public ApprovedLoanResponse findRequestByUniqueCode(LoanApplicationRequest request) throws ObjectNotFoundException {
-        ApprovedLoanRequests approvedRequest = approvedLoanRequestsRepository.findByUniqueCode(request.getUniqueCode());
-        if(approvedRequest == null){
-            throw new ObjectNotFoundException("Request Not Found");
-        }
+        ApprovedLoanRequests approvedRequest = approvedLoanRequestsRepository.findByUniqueCode(request.getUniqueCode()).orElseThrow(()-> new ObjectNotFoundException(REQUEST_NOT_FOUND));
+
         ApprovedLoanResponse response = new ApprovedLoanResponse();
         BeanUtils.copyProperties(approvedRequest,response);
         return response;

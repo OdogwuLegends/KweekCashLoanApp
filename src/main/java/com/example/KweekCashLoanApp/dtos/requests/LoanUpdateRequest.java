@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class LoanUpdateRequest {
-    private long loanRequestId;
+    private Long loanRequestId;
     private LoanStatus loanStatus;
     private double interestRate;
     private String startDate;

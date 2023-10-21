@@ -11,18 +11,20 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.REPAYMENT_SCHEDULE;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "RepaymentSchedule")
+@Entity(name = REPAYMENT_SCHEDULE)
 public class RepaymentSchedule {
 
     @Id
     @GeneratedValue
-    private long repaymentScheduleId;
+    private Long repaymentScheduleId;
 
     @Column(nullable = false)
-    private long loanId;
+    private Long loanId;
 
     @Column(nullable = false)
     private BigDecimal amountPaid;

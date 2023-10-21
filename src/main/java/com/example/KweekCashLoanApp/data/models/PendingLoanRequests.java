@@ -12,17 +12,19 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.PENDING_LOAN_REQUESTS;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "PendingLoanRequests")
+@Entity(name = PENDING_LOAN_REQUESTS)
 public class PendingLoanRequests {
     @Id
     @GeneratedValue
-    private long loanRequestId;
+    private Long loanRequestId;
 
     @Column(nullable = false)
-    private long customerId;
+    private Long customerId;
 
     @Column(nullable = false)
     private String uniqueCode;

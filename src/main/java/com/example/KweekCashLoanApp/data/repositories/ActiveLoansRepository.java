@@ -4,7 +4,9 @@ import com.example.KweekCashLoanApp.data.models.ActiveLoans;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 
 public interface ActiveLoansRepository extends JpaRepository<ActiveLoans,Long> {
-    ActiveLoans findByCustomerId(Long id);
+    Optional<ActiveLoans> findByCustomerId(Long id);
 }

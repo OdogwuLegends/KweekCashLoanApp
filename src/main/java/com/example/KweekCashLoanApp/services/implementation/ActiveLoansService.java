@@ -7,27 +7,26 @@ import com.example.KweekCashLoanApp.dtos.responses.ApprovedLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.example.KweekCashLoanApp.AppUtils.loanStatus;
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.IN_PROGRESS;
+import static com.example.KweekCashLoanApp.utils.AppUtils.loanStatus;
+import static com.example.KweekCashLoanApp.utils.AppUtils.messageForNewBalance;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.*;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class ActiveLoansService implements IActiveLoansService {
-    private ActiveLoansRepository activeLoansRepository;
-    private ClosedLoanService closedLoanService;
-    @Autowired
-    public ActiveLoansService(ActiveLoansRepository activeLoansRepository,ClosedLoanService closedLoanService){
-        this.activeLoansRepository = activeLoansRepository;
-        this.closedLoanService = closedLoanService;
-    }
+    private final ActiveLoansRepository activeLoansRepository;
+    private final ClosedLoanService closedLoanService;
+
     @Override
     public ActiveLoanResponse saveActiveLoans(ApprovedLoanResponse response) {
         ActiveLoans activeLoans = new ActiveLoans();
@@ -42,8 +41,7 @@ public class ActiveLoansService implements IActiveLoansService {
 
     @Override
     public ActiveLoanResponse findByCustomerId(Long id) {
-        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(id);
-        if(activeLoan == null) throw new RuntimeException("Request Not Found");
+        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(id).orElseThrow(()-> new ObjectNotFoundException(REQUEST_NOT_FOUND));
         ActiveLoanResponse response = new ActiveLoanResponse();
         BeanUtils.copyProperties(activeLoan,response);
         return response;
@@ -56,29 +54,27 @@ public class ActiveLoansService implements IActiveLoansService {
 
     @Override
     public String setNewBalance(Long customerId, BigDecimal amountPaid) throws ObjectNotFoundException {
-        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new ObjectNotFoundException("You do not have a loan running currently.");
-        if(activeLoan.getLoanStatus().equals("IN PROGRESS")){
+        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId).orElseThrow(()-> new ObjectNotFoundException(NO_LOAN_RUNNING_CURRENTLY));
+
+        if(activeLoan.getLoanStatus().equals(ACTIVE_LOAN_IN_PROGRESS)){
             activeLoan.setTotalAmountRepaid(activeLoan.getTotalAmountRepaid().add(amountPaid));
             activeLoan.setBalance(activeLoan.getLoanAmount().subtract(activeLoan.getTotalAmountRepaid()));
             activeLoansRepository.save(activeLoan);
-            return "Payment of N"+amountPaid+" was successful"+
-                    "\nYour current loan balance is N"+activeLoan.getBalance();
+            return messageForNewBalance(amountPaid.toString(),activeLoan.getBalance().toString());
 
         } else if (activeLoan.getBalance().compareTo(activeLoan.getLoanAmount())>=0) {
-            activeLoan.setLoanStatus("CLOSED");
+            activeLoan.setLoanStatus(CLOSED);
             ClosedLoanResponse closedLoan = new ClosedLoanResponse();
             BeanUtils.copyProperties(activeLoan,closedLoan);
             closedLoanService.saveClosedLoan(closedLoan);
-            return "Loan Completed";
+            return LOAN_COMPLETED;
         }
-        return "";
+        return EMPTY_STRING;
     }
 
     @Override
     public ActiveLoanResponse getLoanDetails(Long customerId) throws ObjectNotFoundException {
-        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId);
-        if(activeLoan == null) throw new ObjectNotFoundException("You do not have a loan running currently.");
+        ActiveLoans activeLoan = activeLoansRepository.findByCustomerId(customerId).orElseThrow(()-> new ObjectNotFoundException(NO_LOAN_RUNNING_CURRENTLY));
 
         ActiveLoanResponse response = new ActiveLoanResponse();
         BeanUtils.copyProperties(activeLoan,response);

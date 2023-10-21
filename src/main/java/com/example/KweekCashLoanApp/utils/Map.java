@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp;
+package com.example.KweekCashLoanApp.utils;
 
 import com.example.KweekCashLoanApp.data.models.Customer;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;

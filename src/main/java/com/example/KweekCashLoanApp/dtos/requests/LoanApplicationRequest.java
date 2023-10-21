@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class LoanApplicationRequest {
     private String email; //I put this to fetch the customer and set customerId
-    private long customerId;
+    private Long customerId;
     private BigDecimal loanAmount;
     private String uniqueCode;
     private LoanTenure loanTenure;

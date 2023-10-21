@@ -10,9 +10,9 @@ import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
 import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
 import com.example.KweekCashLoanApp.services.interfaces.ILoanOfficerService;
 import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,103 +20,80 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.example.KweekCashLoanApp.AppUtils.*;
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.AWAITING_APPROVAL;
+import static com.example.KweekCashLoanApp.utils.AppUtils.*;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.*;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class LoanOfficerService implements ILoanOfficerService {
-    private LoanOfficerRepository loanOfficerRepository;
-    private PendingLoansService pendingLoansService;
-    private CustomerService customerService;
-    private IApprovedLoansService approvedLoansService;
-    private IRejectedLoansService rejectedLoansService;
-    private IActiveLoansService activeLoansService;
-
-    @Autowired
-    public LoanOfficerService(LoanOfficerRepository loanOfficerRepository,PendingLoansService pendingLoansService,
-                              CustomerService customerService, IApprovedLoansService approvedLoansService,
-                              IRejectedLoansService rejectedLoansService,IActiveLoansService activeLoansService
-                                ){
-        this.loanOfficerRepository = loanOfficerRepository;
-        this.activeLoansService = activeLoansService;
-        this.customerService = customerService;
-        this.rejectedLoansService = rejectedLoansService;
-        this.pendingLoansService = pendingLoansService;
-        this.approvedLoansService = approvedLoansService;
-    }
+    private final LoanOfficerRepository loanOfficerRepository;
+    private final PendingLoansService pendingLoansService;
+    private final CustomerService customerService;
+    private final IApprovedLoansService approvedLoansService;
+    private final IRejectedLoansService rejectedLoansService;
+    private final IActiveLoansService activeLoansService;
 
     @Override
     public RegisterUserResponse registerLoanOfficer(RegisterUserRequest request) throws IncorrectDetailsException {
         validateDetails(request);
 
-        LoanOfficer newLoanOfficer = new LoanOfficer();
-        BeanUtils.copyProperties(request,newLoanOfficer);
-
-        newLoanOfficer.setDateRegistered(LocalDate.now());
-        newLoanOfficer.setAdminLoginCode(generateUniqueCode(10));
-        newLoanOfficer.setAuthorizationCode(generateRandomNumbers(10));
+        LoanOfficer newLoanOfficer = buildNewLoanOfficer(request);
 
         LoanOfficer savedLoanOfficer = loanOfficerRepository.save(newLoanOfficer);
         RegisterUserResponse response = new RegisterUserResponse();
         BeanUtils.copyProperties(savedLoanOfficer,response);
 
-        response.setMessage("Welcome "+savedLoanOfficer.getFirstName()+" "+savedLoanOfficer.getLastName()+
-                ". Your account creation was successful.\n"+
-                "Your Admin Log In Code is "+savedLoanOfficer.getAdminLoginCode()+"\n"+
-                "Your Authorization Code is "+savedLoanOfficer.getAuthorizationCode());
+        response.setMessage(messageForNewLoanOfficer(savedLoanOfficer.getFirstName(),savedLoanOfficer.getLastName(),
+                savedLoanOfficer.getAdminLoginCode(),savedLoanOfficer.getAuthorizationCode()));
         return response;
     }
 
     @Override
     public UpdateUserResponse updateLoanOfficerDetails(UpdateUserRequest request) throws ObjectNotFoundException {
-        LoanOfficer foundLoanOfficer = loanOfficerRepository.findLoanOfficerByEmail(request.getEmail());
+        LoanOfficer foundLoanOfficer = loanOfficerRepository.findLoanOfficerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(EMAIL_NOT_CORRECT));
 
-        if(Objects.isNull(foundLoanOfficer)){
-            throw new ObjectNotFoundException("Email not correct");
-        }
-        if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(""))foundLoanOfficer.setFirstName(request.getFirstName());
-        if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(""))foundLoanOfficer.setLastName(request.getLastName());
-        if(Objects.nonNull(request.getNewEmail()) && !request.getNewEmail().equals(""))foundLoanOfficer.setEmail(request.getNewEmail());
-        if(Objects.nonNull(request.getNewPassword()) && !request.getNewPassword().equals(""))foundLoanOfficer.setPassword(request.getNewPassword());
-        if(Objects.nonNull(request.getPhoneNumber()) && !request.getPhoneNumber().equals(""))foundLoanOfficer.setPhoneNumber(request.getPhoneNumber());
-        if(Objects.nonNull(request.getStreetNumber()) && !request.getStreetNumber().equals(""))foundLoanOfficer.setStreetNumber(request.getStreetNumber());
-        if(Objects.nonNull(request.getStreetName()) && !request.getStreetName().equals(""))foundLoanOfficer.setStreetName(request.getStreetName());
-        if(Objects.nonNull(request.getTown()) && !request.getTown().equals(""))foundLoanOfficer.setTown(request.getTown());
-        if(Objects.nonNull(request.getState()) && !request.getState().equals(""))foundLoanOfficer.setState(request.getState());
+        if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(EMPTY_STRING))foundLoanOfficer.setFirstName(request.getFirstName().toUpperCase());
+        if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(EMPTY_STRING))foundLoanOfficer.setLastName(request.getLastName().toUpperCase());
+        if(Objects.nonNull(request.getNewEmail()) && !request.getNewEmail().equals(EMPTY_STRING))foundLoanOfficer.setEmail(request.getNewEmail());
+        if(Objects.nonNull(request.getNewPassword()) && !request.getNewPassword().equals(EMPTY_STRING))foundLoanOfficer.setPassword(request.getNewPassword());
+        if(Objects.nonNull(request.getPhoneNumber()) && !request.getPhoneNumber().equals(EMPTY_STRING))foundLoanOfficer.setPhoneNumber(request.getPhoneNumber());
+        if(Objects.nonNull(request.getStreetNumber()) && !request.getStreetNumber().equals(EMPTY_STRING))foundLoanOfficer.setStreetNumber(request.getStreetNumber().toUpperCase());
+        if(Objects.nonNull(request.getStreetName()) && !request.getStreetName().equals(EMPTY_STRING))foundLoanOfficer.setStreetName(request.getStreetName().toUpperCase());
+        if(Objects.nonNull(request.getTown()) && !request.getTown().equals(EMPTY_STRING))foundLoanOfficer.setTown(request.getTown().toUpperCase());
+        if(Objects.nonNull(request.getState()) && !request.getState().equals(EMPTY_STRING))foundLoanOfficer.setState(request.getState().toUpperCase());
 
         LoanOfficer updatedOfficer = loanOfficerRepository.save(foundLoanOfficer);
 
         UpdateUserResponse response = new UpdateUserResponse();
         BeanUtils.copyProperties(updatedOfficer,response);
-        response.setMessage("Update successful");
+        response.setMessage(UPDATE_SUCCESSFUL);
         return response;
     }
 
     @Override
     public LoginResponse login(LoginRequest request) throws ObjectNotFoundException {
-        LoanOfficer foundOfficer = loanOfficerRepository.findLoanOfficerByEmail(request.getEmail());
-        if(foundOfficer == null){
-            throw new ObjectNotFoundException("Email not correct");
-        }
+        LoanOfficer foundOfficer = loanOfficerRepository.findLoanOfficerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(EMAIL_NOT_CORRECT));
+
         LoginResponse response = new LoginResponse();
         if(!foundOfficer.getPassword().equals(request.getPassword())){
-            throw new ObjectNotFoundException("Password Incorrect");
+            throw new ObjectNotFoundException(PASSWORD_NOT_CORRECT);
         } else if (!foundOfficer.getAdminLoginCode().equals(request.getAdminLoginCode())) {
-            throw new ObjectNotFoundException("Incorrect Log In Code");
+            throw new ObjectNotFoundException(ADMIN_LOGIN_CODE_NOT_CORRECT);
         } else {
             response.setLoggedIn(true);
-            response.setMessage("Log in successful");
+            response.setMessage(LOG_IN_SUCCESSFUL);
         }
         return response;
     }
 
     @Override
     public List<PendingLoanResponse> seePendingLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
+        findAdminByLoginCode(request);
 
         List<PendingLoanRequests> allRequests = pendingLoansService.findAllPendingRequests();
-        if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Pending Loan Requests");
+        if(allRequests.isEmpty()) throw new ObjectNotFoundException(NO_PENDING_LOAN_REQUESTS);
 
         List<PendingLoanResponse> response = new ArrayList<>();
 
@@ -139,16 +116,16 @@ public class LoanOfficerService implements ILoanOfficerService {
                 response.add(loanResponse);
             }
         }
-        if(response.isEmpty()) throw new ObjectNotFoundException("No Pending Loan Requests found");
+        if(response.isEmpty()) throw new ObjectNotFoundException(NO_PENDING_LOAN_REQUESTS);
         return response;
     }
 
     @Override
     public List<ApprovedLoanResponse> seeApprovedLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
+        findAdminByLoginCode(request);
 
         List<ApprovedLoanRequests> allRequests = approvedLoansService.findAllApprovedRequests();
-        if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Approved Loan Requests");
+        if(allRequests.isEmpty()) throw new ObjectNotFoundException(NO_APPROVED_LOAN_REQUESTS);
 
         List<ApprovedLoanResponse> approvedLoanResponses = new ArrayList<>();
 
@@ -163,9 +140,9 @@ public class LoanOfficerService implements ILoanOfficerService {
 
     @Override
     public List<ActiveLoanResponse> seeActiveLoans(LoanUpdateRequest request) throws ObjectNotFoundException {
-        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
+        findAdminByLoginCode(request);
         List<ActiveLoans> allRequests = activeLoansService.findAllActiveLoans();
-        if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Active Loans");
+        if(allRequests.isEmpty()) throw new ObjectNotFoundException(NO_ACTIVE_LOANS);
 
         List<ActiveLoanResponse> activeLoanResponse = new ArrayList<>();
 
@@ -177,12 +154,16 @@ public class LoanOfficerService implements ILoanOfficerService {
         return activeLoanResponse;
     }
 
+    private void findAdminByLoginCode(LoanUpdateRequest request) {
+        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException(ADMIN_LOGIN_CODE_NOT_CORRECT));
+    }
+
     @Override
     public List<RejectedLoanResponse> seeRejectedLoanRequests(LoanUpdateRequest request) throws ObjectNotFoundException {
-        loanOfficerRepository.findLoanOfficerByAdminLoginCode(request.getAdminLoginCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect Admin Log in Code"));
+        findAdminByLoginCode(request);
 
         List<RejectedLoanRequests> allRequests = rejectedLoansService.findAllRejectedRequest();
-        if(allRequests.isEmpty()) throw new ObjectNotFoundException("No Rejected Loan Requests");
+        if(allRequests.isEmpty()) throw new ObjectNotFoundException(NO_REJECTED_LOAN_REQUESTS);
 
         List<RejectedLoanResponse> rejectedLoanResponses = new ArrayList<>();
 
@@ -196,14 +177,14 @@ public class LoanOfficerService implements ILoanOfficerService {
 
     @Override
     public String reviewLoanRequest(LoanUpdateRequest request) throws ObjectNotFoundException {
-        loanOfficerRepository.findLoanOfficerByAdminLoginCodeAndAuthorizationCode(request.getAdminLoginCode(),request.getAuthorizationCode()).orElseThrow(()-> new ObjectNotFoundException("Incorrect details"));
+        loanOfficerRepository.findLoanOfficerByAdminLoginCodeAndAuthorizationCode(request.getAdminLoginCode(),request.getAuthorizationCode()).orElseThrow(()-> new ObjectNotFoundException(INCORRECT_LOGIN_DETAILS));
         return pendingLoansService.updateRequestDetails(request);
     }
 
     @Override
     public LoanAgreementResponse generateLoanAgreementForm(LoanApplicationRequest request) throws ObjectNotFoundException {
         ApprovedLoanResponse approvedLoan = approvedLoansService.findRequestByUniqueCode(request);
-        if(!Objects.equals(approvedLoan.getLoanStatus(), "APPROVED")) throw new ObjectNotFoundException("REQUEST NOT APPROVED");
+        if(!Objects.equals(approvedLoan.getLoanStatus(), APPROVED_STATUS )) throw new ObjectNotFoundException(REQUEST_NOT_APPROVED);
 
 //        FindUserResponse foundCustomer = customerService.findCustomerById(approvedLoan.getCustomerId());
 
@@ -225,4 +206,22 @@ public class LoanOfficerService implements ILoanOfficerService {
         return response;
     }
 
+    private static LoanOfficer buildNewLoanOfficer(RegisterUserRequest request) {
+        LoanOfficer loanOfficer = new LoanOfficer();
+
+        loanOfficer.setFirstName(request.getFirstName().toUpperCase());
+        loanOfficer.setLastName(request.getLastName().toUpperCase());
+        loanOfficer.setEmail(request.getEmail());
+        loanOfficer.setPassword(request.getPassword());
+        loanOfficer.setPhoneNumber(request.getPhoneNumber());
+        loanOfficer.setStreetNumber(request.getStreetNumber());
+        loanOfficer.setStreetName(request.getStreetName().toUpperCase());
+        loanOfficer.setTown(request.getTown().toUpperCase());
+        loanOfficer.setState(request.getState().toUpperCase());
+        loanOfficer.setDateRegistered(LocalDate.now());
+        loanOfficer.setAdminLoginCode(generateUniqueCode(10));
+        loanOfficer.setAuthorizationCode(generateRandomNumbers(10));
+
+        return loanOfficer;
+    }
 }

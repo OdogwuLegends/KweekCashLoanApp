@@ -1,6 +1,6 @@
 package com.example.KweekCashLoanApp.error;
 
-import com.example.KweekCashLoanApp.data.models.ErrorMessage;
+import com.example.KweekCashLoanApp.dtos.responses.ErrorMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

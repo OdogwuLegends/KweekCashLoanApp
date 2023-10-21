@@ -11,15 +11,17 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.CUSTOMERS;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "Customers")
+@Entity(name = CUSTOMERS)
 public class Customer{
     @Id
     @GeneratedValue
-    private long customerId;
+    private Long customerId;
 
     @Column(nullable = false,length = 100)
     private String firstName;

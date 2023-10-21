@@ -11,27 +11,29 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.CLOSED_LOANS;
+
 @Data
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "Closed_Loans")
+@Entity(name = CLOSED_LOANS)
 public class ClosedLoans {
     @Id
     @GeneratedValue
-    private long closedLoanId;
+    private Long closedLoanId;
 
     @Column(nullable = false)
-    private long loanId;
+    private Long loanId;
 
     @Column(nullable = false)
-    private long loanRequestId;
+    private Long loanRequestId;
 
     @Column(nullable = false)
-    private long approvedRequestId;
+    private Long approvedRequestId;
 
     @Column(nullable = false)
-    private long customerId;
+    private Long customerId;
 
     @Column(nullable = false)
     private String uniqueCode;

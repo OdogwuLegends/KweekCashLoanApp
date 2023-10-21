@@ -4,20 +4,19 @@ import com.example.KweekCashLoanApp.data.models.PendingLoanRequests;
 import com.example.KweekCashLoanApp.data.models.RejectedLoanRequests;
 import com.example.KweekCashLoanApp.data.repositories.RejectedLoanRequestsRepository;
 import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class RejectedLoansService implements IRejectedLoansService {
-    private RejectedLoanRequestsRepository rejectedLoanRequestsRepository;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.SUCCESSFULLY_SAVED;
 
-    @Autowired
-    public RejectedLoansService(RejectedLoanRequestsRepository rejectedLoanRequestsRepository){
-        this.rejectedLoanRequestsRepository = rejectedLoanRequestsRepository;
-    }
+@Service
+@AllArgsConstructor
+public class RejectedLoansService implements IRejectedLoansService {
+    private final RejectedLoanRequestsRepository rejectedLoanRequestsRepository;
 
     @Override
     public String saveRejectedRequest(PendingLoanRequests foundRequest) {
@@ -25,7 +24,7 @@ public class RejectedLoansService implements IRejectedLoansService {
         BeanUtils.copyProperties(foundRequest,rejectedLoanRequests);
         rejectedLoanRequests.setMessage(foundRequest.getOptionalMessage());
         rejectedLoanRequestsRepository.save(rejectedLoanRequests);
-        return "Successfully Saved";
+        return SUCCESSFULLY_SAVED;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
 import com.example.KweekCashLoanApp.data.models.Customer;
-import com.example.KweekCashLoanApp.data.repositories.ApprovedLoanRequestsRepository;
 import com.example.KweekCashLoanApp.data.repositories.CustomerRepository;
 import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
@@ -9,40 +8,30 @@ import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import com.example.KweekCashLoanApp.services.interfaces.ICustomerService;
 import com.example.KweekCashLoanApp.services.interfaces.IPendingLoansService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.example.KweekCashLoanApp.AppUtils.validateDetails;
+import static com.example.KweekCashLoanApp.utils.AppUtils.validateDetails;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.*;
 
 @Service
+@AllArgsConstructor
 public class CustomerService implements ICustomerService {
-    private CustomerRepository customerRepository;
-    private IPendingLoansService pendingLoansService;
-    private ApprovedLoanRequestsRepository approvedLoanRequestsRepository;
-    private RepaymentScheduleService repaymentScheduleService;
-
-    @Autowired
-    public CustomerService(CustomerRepository customerRepository,IPendingLoansService pendingLoansService,
-                           RepaymentScheduleService repaymentScheduleService, ApprovedLoanRequestsRepository approvedLoanRequestsRepository){
-        this.customerRepository = customerRepository;
-        this.pendingLoansService = pendingLoansService;
-        this.approvedLoanRequestsRepository = approvedLoanRequestsRepository;
-        this.repaymentScheduleService = repaymentScheduleService;
-    }
+    private final CustomerRepository customerRepository;
+    private final IPendingLoansService pendingLoansService;
+    private final RepaymentScheduleService repaymentScheduleService;
 
     @Override
     public RegisterUserResponse registerCustomer(RegisterUserRequest request) throws IncorrectDetailsException {
         validateDetails(request);
 
-        Customer newCustomer = new Customer();
-        BeanUtils.copyProperties(request,newCustomer);
+        Customer newCustomer = buildNewCustomer(request);
 
-        newCustomer.setDateRegistered(LocalDate.now());
         Customer savedCustomer = customerRepository.save(newCustomer);
 
         RegisterUserResponse response = new RegisterUserResponse();
@@ -51,26 +40,22 @@ public class CustomerService implements ICustomerService {
         return response;
     }
 
-
-
     public LoginResponse logIn(LoginRequest request) throws ObjectNotFoundException {
-        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail());
-        if(Objects.isNull(foundCustomer)){
-            throw new ObjectNotFoundException("Email not correct");
-        }
+        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(EMAIL_NOT_CORRECT));
+
         LoginResponse response = new LoginResponse();
         if(!foundCustomer.getPassword().equals(request.getPassword())){
-            throw new ObjectNotFoundException("Password incorrect");
+            throw new ObjectNotFoundException(PASSWORD_NOT_CORRECT);
         } else {
             response.setLoggedIn(true);
-            response.setMessage("Log in successful");
+            response.setMessage(LOG_IN_SUCCESSFUL);
         }
         return response;
     }
 
     @Override
     public LoanApplicationResponse applyForALoan(LoanApplicationRequest request) {
-        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail());
+        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(CUSTOMER_NOT_FOUND));
         return pendingLoansService.requestForALoan(request,foundCustomer);
     }
 
@@ -79,42 +64,89 @@ public class CustomerService implements ICustomerService {
         return pendingLoansService.confirmStatus(request);
     }
 
-//    @Override //IS THIS CORRECT?
-//    public LoanAgreementResponse viewLoanAgreementForm(LoanApplicationRequest request) {
-//        return loanOfficerService.generateLoanAgreementForm(request);
-//    }
-
     @Override
     public FindUserResponse findCustomerById(long id) throws ObjectNotFoundException {
         Optional<Customer> foundCustomer = customerRepository.findById(id);
+
         if(foundCustomer.isEmpty()){
-            throw new ObjectNotFoundException("Customer Not Found");
+            throw new ObjectNotFoundException(CUSTOMER_NOT_FOUND);
         }
 
         FindUserResponse response = new FindUserResponse();
 
-        String address = foundCustomer.get().getStreetNumber()+","+foundCustomer.get().getStreetName()+
-        ","+foundCustomer.get().getTown()+","+foundCustomer.get().getState()+".";
-
-        response.setFirstName(foundCustomer.get().getFirstName());
-        response.setLastName(foundCustomer.get().getLastName());
-        response.setEmail(foundCustomer.get().getEmail());
-        response.setPhoneNumber(foundCustomer.get().getPhoneNumber());
-        response.setAddress(address);
-        response.setOccupation(foundCustomer.get().getOccupation());
+        buildCustomerAddress(foundCustomer.get(), response);
 
         return response;
     }
 
     @Override
     public FindUserResponse findCustomerByEmail(String email) throws ObjectNotFoundException {
-        Customer foundCustomer = customerRepository.findCustomerByEmail(email);
-        if(foundCustomer == null) throw new ObjectNotFoundException("Customer not found");
+        Customer foundCustomer = customerRepository.findCustomerByEmail(email).orElseThrow(()-> new ObjectNotFoundException(CUSTOMER_NOT_FOUND));
 
         FindUserResponse response = new FindUserResponse();
 
-        String address = foundCustomer.getStreetNumber()+","+foundCustomer.getStreetName()+
-                ","+foundCustomer.getTown()+","+foundCustomer.getState()+".";
+        buildCustomerAddress(foundCustomer, response);
+
+        return response;
+    }
+
+    @Override
+    public UpdateUserResponse updateCustomerDetails(UpdateUserRequest request) throws ObjectNotFoundException {
+        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(EMAIL_NOT_CORRECT));
+
+
+        if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(EMPTY_STRING))foundCustomer.setFirstName(request.getFirstName().toUpperCase());
+        if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(EMPTY_STRING))foundCustomer.setLastName(request.getLastName().toUpperCase());
+        if(Objects.nonNull(request.getNewEmail()) && !request.getNewEmail().equals(EMPTY_STRING))foundCustomer.setEmail(request.getNewEmail());
+        if(Objects.nonNull(request.getNewPassword()) && !request.getNewPassword().equals(EMPTY_STRING))foundCustomer.setPassword(request.getNewPassword());
+        if(Objects.nonNull(request.getPhoneNumber()) && !request.getPhoneNumber().equals(EMPTY_STRING))foundCustomer.setPhoneNumber(request.getPhoneNumber());
+        if(Objects.nonNull(request.getStreetNumber()) && !request.getStreetNumber().equals(EMPTY_STRING))foundCustomer.setStreetNumber(request.getStreetNumber().toUpperCase());
+        if(Objects.nonNull(request.getStreetName()) && !request.getStreetName().equals(EMPTY_STRING))foundCustomer.setStreetName(request.getStreetName().toUpperCase());
+        if(Objects.nonNull(request.getTown()) && !request.getTown().equals(EMPTY_STRING))foundCustomer.setTown(request.getTown().toUpperCase());
+        if(Objects.nonNull(request.getState()) && !request.getState().equals(EMPTY_STRING))foundCustomer.setState(request.getState().toUpperCase());
+        if(Objects.nonNull(request.getOccupation()) && !request.getOccupation().equals(EMPTY_STRING))foundCustomer.setOccupation(request.getOccupation().toUpperCase());
+
+        Customer updatedCustomer = customerRepository.save(foundCustomer);
+        UpdateUserResponse response = new UpdateUserResponse();
+        BeanUtils.copyProperties(updatedCustomer,response);
+        response.setMessage(UPDATE_SUCCESSFUL);
+        return response;
+    }
+
+    @Override
+    public String makePayment(PaymentRequest request) throws ObjectNotFoundException {
+        Customer customer = customerRepository.findCustomerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(CUSTOMER_NOT_FOUND));
+        Long id = customer.getCustomerId();
+        return repaymentScheduleService.makePayment(id,request);
+    }
+
+    @Override
+    public String checkLoanBalance(PaymentRequest request) throws ObjectNotFoundException {
+        Customer customer = customerRepository.findCustomerByEmail(request.getEmail()).orElseThrow(()-> new ObjectNotFoundException(CUSTOMER_NOT_FOUND));
+        Long id = customer.getCustomerId();
+        return repaymentScheduleService.checkBalance(id).toString();
+    }
+
+    private static Customer buildNewCustomer(RegisterUserRequest request) {
+        Customer newCustomer = new Customer();
+
+        newCustomer.setFirstName(request.getFirstName().toUpperCase());
+        newCustomer.setLastName(request.getLastName().toUpperCase());
+        newCustomer.setEmail(request.getEmail());
+        newCustomer.setPassword(request.getPassword());
+        newCustomer.setPhoneNumber(request.getPhoneNumber());
+        newCustomer.setOccupation(request.getOccupation().toUpperCase());
+        newCustomer.setStreetNumber(request.getStreetNumber());
+        newCustomer.setStreetName(request.getStreetName().toUpperCase());
+        newCustomer.setTown(request.getTown().toUpperCase());
+        newCustomer.setState(request.getState().toUpperCase());
+        newCustomer.setDateRegistered(LocalDate.now());
+        return newCustomer;
+    }
+
+    private static void buildCustomerAddress(Customer foundCustomer, FindUserResponse response) {
+        String address = foundCustomer.getStreetNumber()+COMMA+ foundCustomer.getStreetName()+
+                COMMA+ foundCustomer.getTown()+COMMA+ foundCustomer.getState()+FULL_STOP;
 
         response.setFirstName(foundCustomer.getFirstName());
         response.setLastName(foundCustomer.getLastName());
@@ -122,46 +154,5 @@ public class CustomerService implements ICustomerService {
         response.setPhoneNumber(foundCustomer.getPhoneNumber());
         response.setAddress(address);
         response.setOccupation(foundCustomer.getOccupation());
-
-        return response;
-    }
-
-    @Override
-    public UpdateUserResponse updateCustomerDetails(UpdateUserRequest request) throws ObjectNotFoundException {
-        Customer foundCustomer = customerRepository.findCustomerByEmail(request.getEmail());
-        if(Objects.isNull(foundCustomer)){
-            throw new ObjectNotFoundException("Email not correct");
-        }
-
-        if(Objects.nonNull(request.getFirstName()) && !request.getFirstName().equals(""))foundCustomer.setFirstName(request.getFirstName());
-        if(Objects.nonNull(request.getLastName()) && !request.getLastName().equals(""))foundCustomer.setLastName(request.getLastName());
-        if(Objects.nonNull(request.getNewEmail()) && !request.getNewEmail().equals(""))foundCustomer.setEmail(request.getNewEmail());
-        if(Objects.nonNull(request.getNewPassword()) && !request.getNewPassword().equals(""))foundCustomer.setPassword(request.getNewPassword());
-        if(Objects.nonNull(request.getPhoneNumber()) && !request.getPhoneNumber().equals(""))foundCustomer.setPhoneNumber(request.getPhoneNumber());
-        if(Objects.nonNull(request.getStreetNumber()) && !request.getStreetNumber().equals(""))foundCustomer.setStreetNumber(request.getStreetNumber());
-        if(Objects.nonNull(request.getStreetName()) && !request.getStreetName().equals(""))foundCustomer.setStreetName(request.getStreetName());
-        if(Objects.nonNull(request.getTown()) && !request.getTown().equals(""))foundCustomer.setTown(request.getTown());
-        if(Objects.nonNull(request.getState()) && !request.getState().equals(""))foundCustomer.setState(request.getState());
-        if(Objects.nonNull(request.getOccupation()) && !request.getOccupation().equals(""))foundCustomer.setOccupation(request.getOccupation());
-
-        Customer updatedCustomer = customerRepository.save(foundCustomer);
-        UpdateUserResponse response = new UpdateUserResponse();
-        BeanUtils.copyProperties(updatedCustomer,response);
-        response.setMessage("Update successful");
-        return response;
-    }
-
-    @Override
-    public String makePayment(PaymentRequest request) throws ObjectNotFoundException {
-        Customer customer = customerRepository.findCustomerByEmail(request.getEmail());
-        Long id = customer.getCustomerId();
-        return repaymentScheduleService.makePayment(id,request);
-    }
-
-    @Override
-    public String checkLoanBalance(PaymentRequest request) throws ObjectNotFoundException {
-        Customer customer = customerRepository.findCustomerByEmail(request.getEmail());
-        Long id = customer.getCustomerId();
-        return repaymentScheduleService.checkBalance(id).toString();
     }
 }

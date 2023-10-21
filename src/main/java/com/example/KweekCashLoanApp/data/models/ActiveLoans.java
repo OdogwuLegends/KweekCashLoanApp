@@ -8,23 +8,25 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.ACTIVE_LOANS;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "Active_Loans")
+@Entity(name = ACTIVE_LOANS)
 public class ActiveLoans {
     @Id
     @GeneratedValue
-    private long loanId;
+    private Long loanId;
 
     @Column(nullable = false)
-    private long loanRequestId;
+    private Long loanRequestId;
 
     @Column(nullable = false)
-    private long approvedRequestId;
+    private Long approvedRequestId;
 
     @Column(nullable = false)
-    private long customerId;
+    private Long customerId;
 
     @Column(nullable = false)
     private String uniqueCode;

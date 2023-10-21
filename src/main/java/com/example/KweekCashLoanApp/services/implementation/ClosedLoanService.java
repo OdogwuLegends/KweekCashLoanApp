@@ -4,17 +4,15 @@ import com.example.KweekCashLoanApp.data.models.ClosedLoans;
 import com.example.KweekCashLoanApp.data.repositories.ClosedLoanRepository;
 import com.example.KweekCashLoanApp.dtos.responses.ClosedLoanResponse;
 import com.example.KweekCashLoanApp.services.interfaces.IClosedLoanService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class ClosedLoanService implements IClosedLoanService {
-    private ClosedLoanRepository closedLoanRepository;
-    @Autowired
-    public ClosedLoanService(ClosedLoanRepository closedLoanRepository){
-        this.closedLoanRepository = closedLoanRepository;
-    }
+    private final ClosedLoanRepository closedLoanRepository;
 
     @Override
     public ClosedLoanResponse saveClosedLoan(ClosedLoanResponse closedLoan) {

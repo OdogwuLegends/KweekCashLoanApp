@@ -1,7 +1,5 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.AppUtils;
-import com.example.KweekCashLoanApp.Map;
 import com.example.KweekCashLoanApp.data.models.ApprovedLoanRequests;
 import com.example.KweekCashLoanApp.data.models.Customer;
 import com.example.KweekCashLoanApp.data.models.PendingLoanRequests;
@@ -17,32 +15,28 @@ import com.example.KweekCashLoanApp.services.interfaces.IActiveLoansService;
 import com.example.KweekCashLoanApp.services.interfaces.IApprovedLoansService;
 import com.example.KweekCashLoanApp.services.interfaces.IPendingLoansService;
 import com.example.KweekCashLoanApp.services.interfaces.IRejectedLoansService;
+import com.example.KweekCashLoanApp.utils.AppUtils;
+import com.example.KweekCashLoanApp.utils.Map;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.KweekCashLoanApp.AppUtils.*;
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.*;
+import static com.example.KweekCashLoanApp.utils.AppUtils.*;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.*;
 
 @Service
+@AllArgsConstructor
 public class PendingLoansService implements IPendingLoansService {
-    private PendingLoanRequestsRepository pendingLoanRequestsRepository;
-    private IApprovedLoansService approvedLoansService;
-    private IRejectedLoansService rejectedLoansService;
-    private IActiveLoansService activeLoansService;
+    private final PendingLoanRequestsRepository pendingLoanRequestsRepository;
+    private final IApprovedLoansService approvedLoansService;
+    private final IRejectedLoansService rejectedLoansService;
+    private final IActiveLoansService activeLoansService;
 
-    @Autowired
-    public PendingLoansService(PendingLoanRequestsRepository pendingLoanRequestsRepository,IApprovedLoansService approvedLoansService,
-                               IRejectedLoansService rejectedLoansService,IActiveLoansService activeLoansService){
-        this.pendingLoanRequestsRepository = pendingLoanRequestsRepository;
-        this.activeLoansService = activeLoansService;
-        this.approvedLoansService = approvedLoansService;
-        this.rejectedLoansService = rejectedLoansService;
-    }
 
     @Override
     public LoanApplicationResponse requestForALoan(LoanApplicationRequest request, Customer foundCustomer) {
@@ -66,26 +60,23 @@ public class PendingLoansService implements IPendingLoansService {
     }
     @Override
     public LoanApplicationResponse confirmStatus(LoanApplicationRequest request) throws IncorrectDetailsException {
-        PendingLoanRequests foundApplication = pendingLoanRequestsRepository.findLoanRequestsByUniqueCode(request.getUniqueCode());
-        if(foundApplication == null)throw new IncorrectDetailsException("Incorrect Unique Code Entered");
+        PendingLoanRequests foundApplication = pendingLoanRequestsRepository.findLoanRequestsByUniqueCode(request.getUniqueCode()).orElseThrow(()-> new IncorrectDetailsException(INCORRECT_CODE));
+
         LoanApplicationResponse response = new LoanApplicationResponse();
 
         if(foundApplication.getLoanStatus() == AWAITING_APPROVAL){
-            response.setMessage("Awaiting approval. Please check back in 48 hours.");
+            response.setMessage(REQUEST_AWAITING_APPROVAL);
         } else if (foundApplication.getLoanStatus() == APPROVED) {
-            response.setMessage("Application approved.\nPlease proceed to download and execute loan terms and conditions.");
+            response.setMessage(APPLICATION_REQUEST_APPROVED);
         } else if (foundApplication.getLoanStatus() == REJECTED) {
-            response.setMessage("Application Rejected.\nRemark: "+foundApplication.getOptionalMessage());
+            response.setMessage(messageForRejectedRequest(foundApplication.getOptionalMessage()));
         }
         return response;
     }
 
     @Override
     public PendingLoanResponse findRequestById(Long id) throws ObjectNotFoundException {
-        PendingLoanRequests foundRequest = pendingLoanRequestsRepository.findById(id).get();
-        if(foundRequest == null){
-            throw new ObjectNotFoundException("Loan Request Not Found");
-        }
+        PendingLoanRequests foundRequest = pendingLoanRequestsRepository.findById(id).orElseThrow(()-> new ObjectNotFoundException(LOAN_REQUEST_NOT_FOUND));
 
         PendingLoanResponse response = new PendingLoanResponse();
         BeanUtils.copyProperties(foundRequest,response);
@@ -101,7 +92,7 @@ public class PendingLoansService implements IPendingLoansService {
     @Override
     public String updateRequestDetails(LoanUpdateRequest request) throws ObjectNotFoundException {
         Optional<PendingLoanRequests> foundRequestOptional = pendingLoanRequestsRepository.findById(request.getLoanRequestId());
-        PendingLoanRequests foundRequest = foundRequestOptional.orElseThrow(() -> new ObjectNotFoundException("Loan request not found"));
+        PendingLoanRequests foundRequest = foundRequestOptional.orElseThrow(() -> new ObjectNotFoundException(LOAN_REQUEST_NOT_FOUND));
 
         foundRequest.setLoanStatus(request.getLoanStatus());
         foundRequest.setOptionalMessage(request.getMessage());
@@ -126,6 +117,6 @@ public class PendingLoansService implements IPendingLoansService {
             rejectedLoansService.saveRejectedRequest(foundRequest);
         }
 
-        return "Review Successful";
+        return REVIEW_SUCCESSFUL;
     }
 }

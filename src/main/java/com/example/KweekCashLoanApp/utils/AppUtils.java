@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp;
+package com.example.KweekCashLoanApp.utils;
 
 import com.example.KweekCashLoanApp.data.enums.LoanStatus;
 import com.example.KweekCashLoanApp.dtos.requests.LoanApplicationRequest;
@@ -126,5 +126,18 @@ public class AppUtils {
         if(!AppUtils.passwordIsCorrect(request.getPassword())){
             throw new IncorrectDetailsException("Invalid password.");
         }
+    }
+    public static String messageForNewBalance(String amount, String balance){
+        return String.format("Payment of N"+amount+" was successful"+
+                "\nYour current loan balance is N"+balance);
+    }
+    public static String messageForRejectedRequest(String message){
+        return String.format("Application Rejected.\nRemark: "+message);
+    }
+    public static String messageForNewLoanOfficer(String firstName, String lastName, String loginCode, String authorizationCode){
+        return String.format("Welcome "+firstName+" "+lastName+
+                ". Your account creation was successful.\n"+
+                "Your Admin Log In Code is "+loginCode+"\n"+
+                "Your Authorization Code is "+authorizationCode);
     }
 }

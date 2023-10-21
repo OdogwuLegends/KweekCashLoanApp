@@ -1,25 +1,21 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.data.repositories.RepaymentScheduleRepository;
 import com.example.KweekCashLoanApp.dtos.requests.PaymentRequest;
 import com.example.KweekCashLoanApp.dtos.responses.ActiveLoanResponse;
 import com.example.KweekCashLoanApp.dtos.responses.RepaymentScheduleResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import com.example.KweekCashLoanApp.services.interfaces.IRepaymentScheduleService;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
-public class RepaymentScheduleService implements IRepaymentScheduleService {
-    private RepaymentScheduleRepository repaymentScheduleRepository;
-    private ActiveLoansService activeLoansService;
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.REQUEST_NOT_FOUND;
 
-    @Autowired
-    public RepaymentScheduleService(RepaymentScheduleRepository repaymentScheduleRepository,ActiveLoansService activeLoansService){
-        this.repaymentScheduleRepository = repaymentScheduleRepository;
-        this.activeLoansService = activeLoansService;
-    }
+@Service
+@AllArgsConstructor
+public class RepaymentScheduleService implements IRepaymentScheduleService {
+    private final ActiveLoansService activeLoansService;
+
 
     @Override
     public String makePayment(Long customerId, PaymentRequest request) throws ObjectNotFoundException {
@@ -30,7 +26,7 @@ public class RepaymentScheduleService implements IRepaymentScheduleService {
     public RepaymentScheduleResponse checkBalance(Long customerId) throws ObjectNotFoundException {
         ActiveLoanResponse activeLoanResponse = activeLoansService.getLoanDetails(customerId);
         if(activeLoanResponse == null){
-            throw new ObjectNotFoundException("Request Not Found");
+            throw new ObjectNotFoundException(REQUEST_NOT_FOUND);
         }
         RepaymentScheduleResponse response = new RepaymentScheduleResponse();
         BeanUtils.copyProperties(activeLoanResponse,response);

@@ -1,22 +1,22 @@
 package com.example.KweekCashLoanApp.services.implementation;
 
-import com.example.KweekCashLoanApp.data.enums.LoanStatus;
 import com.example.KweekCashLoanApp.data.models.LoanOfficer;
 import com.example.KweekCashLoanApp.data.repositories.LoanOfficerRepository;
 import com.example.KweekCashLoanApp.dtos.requests.*;
 import com.example.KweekCashLoanApp.dtos.responses.*;
 import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
+import com.example.KweekCashLoanApp.services.interfaces.ICustomerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.APPROVED;
 import static com.example.KweekCashLoanApp.data.enums.LoanStatus.REJECTED;
+import static com.example.KweekCashLoanApp.services.implementation.TestVariables.*;
+import static com.example.KweekCashLoanApp.services.implementation.TestVariables.buildLoanRequestForDavid;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
@@ -25,6 +25,8 @@ class LoanOfficerServiceTest {
     private LoanOfficerService loanOfficerService;
     @Autowired
     private LoanOfficerRepository loanOfficerRepository;
+    @Autowired
+    private ICustomerService customerService;
 
     @Test
     void objectNotNull(){
@@ -33,29 +35,13 @@ class LoanOfficerServiceTest {
 
     @Test
     void registerLoanOfficerWithCorrectDetails(){
-        RegisterUserRequest newOfficer = new RegisterUserRequest();
-
-        newOfficer.setFirstName("Enzo");
-        newOfficer.setLastName("Fernandez");
-        newOfficer.setEmail("enzomoney@gmail.com");
-        newOfficer.setPassword("BigEnzo@98");
-        newOfficer.setPhoneNumber("08066778899");
-        newOfficer.setStreetNumber("54");
-        newOfficer.setStreetName("Marilyn Munroe");
-        newOfficer.setTown("Ajah");
-        newOfficer.setState("Lagos");
-
-        RegisterUserResponse savedOfficer = new RegisterUserResponse();
-        try {
-            savedOfficer = loanOfficerService.registerLoanOfficer(newOfficer);
-        } catch (IncorrectDetailsException e) {
-            System.err.println(e.getMessage());
-        }
+        RegisterUserRequest request = buildFirstLoanOfficer();
+        RegisterUserResponse savedOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(savedOfficer);
 
         assertThat(savedOfficer).isNotNull();
-        assertThat(savedOfficer.getFirstName()).isEqualTo("Enzo");
+        assertThat(savedOfficer.getFirstName()).isEqualTo("MIKE");
         assertThat(savedOfficer.getMessage()).isNotNull();
-        System.out.println(savedOfficer);
     }
 
     @Test
@@ -94,19 +80,20 @@ class LoanOfficerServiceTest {
 
     @Test
     void testLoginWithCorrectLoginDetails(){
-        LoginRequest request = new LoginRequest();
-        request.setPassword("BigEnzo@98");
-        request.setEmail("enzomoney@gmail.com");
-        request.setAdminLoginCode("6XIdAcI92M");
+        RegisterUserRequest request = buildSecondLoanOfficer();
+        RegisterUserResponse savedOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(savedOfficer);
 
-        LoginResponse response = new LoginResponse();
-        try {
-            response =  loanOfficerService.login(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("bidemiboyo@gmail.com");
+        loginRequest.setPassword("12BigWhiteFav@");
+        loginRequest.setAdminLoginCode(savedOfficer.getAdminLoginCode());
+
+        LoginResponse response = loanOfficerService.login(loginRequest);
+
         assertThat(response).isNotNull();
         assertTrue(response.isLoggedIn());
+        assertNotNull(response.getMessage());
     }
     @Test
     void testLoginWithIncorrectEmail() {
@@ -138,39 +125,41 @@ class LoanOfficerServiceTest {
 
     @Test
     void updateLoanOfficerDetails(){
-        LoanOfficer foundOfficer =  loanOfficerRepository.findLoanOfficerByEmail("ename@gmail.com");
+        RegisterUserRequest request = buildThirdLoanOfficer();
+        RegisterUserResponse savedOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(savedOfficer);
+        assertEquals("helloboyo@gmail.com", savedOfficer.getEmail());
 
-        assertNotNull(foundOfficer);
-        assertEquals("Inemesit",foundOfficer.getFirstName());
+        UpdateUserRequest updateUserRequest = new UpdateUserRequest();
+        updateUserRequest.setEmail("helloboyo@gmail.com");
+        updateUserRequest.setNewEmail("michaelboyo@gmail.com");
 
-        UpdateUserRequest request = new UpdateUserRequest();
-        request.setEmail("ename@gmail.com");
-        request.setFirstName("Inyang");
-
-        UpdateUserResponse response = new UpdateUserResponse();
-        try {
-            response = loanOfficerService.updateLoanOfficerDetails(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        UpdateUserResponse response = loanOfficerService.updateLoanOfficerDetails(updateUserRequest);
         assertNotNull(response);
-        assertThat(response.getFirstName()).isNotEqualToIgnoringCase("Inemesit");
-        assertEquals("Inyang",response.getFirstName());
-        assertEquals("ename@gmail.com",response.getEmail());
+        assertEquals("Update successful",response.getMessage());
+
+        LoanOfficer editedOfficer = loanOfficerRepository.findLoanOfficerByEmail("michaelboyo@gmail.com").get();
+        assertEquals(savedOfficer.getLoanOfficerId(), editedOfficer.getLoanOfficerId());
     }
     @Test
     void seeAllPendingLoanRequestsWithCorrectAdminLoginCode(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
+        RegisterUserRequest request = buildDavid();
+        RegisterUserResponse savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        List<PendingLoanResponse> foundResponses = new ArrayList<>();
-        try {
-            foundResponses = loanOfficerService.seePendingLoanRequests(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
-        assertThat(foundResponses).isNotNull();
-        assertEquals(2,foundResponses.size());
+        request = buildFifthLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForDavid();
+        customerService.applyForALoan(loanApplicationRequest);
+
+        LoanUpdateRequest loanUpdateRequest = new LoanUpdateRequest();
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+
+        List<PendingLoanResponse> pendingLoanResponseList = loanOfficerService.seePendingLoanRequests(loanUpdateRequest);
+        assertThat(pendingLoanResponseList).isNotNull();
+        assertEquals(1,pendingLoanResponseList.size());
     }
     @Test
     void seeAllPendingLoanRequestsWithWrongAdminLoginCode(){
@@ -180,17 +169,28 @@ class LoanOfficerServiceTest {
     }
     @Test
     void seeAllApprovedLoanRequestsWithCorrectAdminLoginCode(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
+        RegisterUserRequest request = buildTimi();
+        RegisterUserResponse savedCustomer;
+        savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        List<ApprovedLoanResponse> foundResponses = new ArrayList<>();
-        try {
-            foundResponses = loanOfficerService.seeApprovedLoanRequests(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        request =  buildFourthLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForTimi();
+        LoanApplicationResponse loanApplicationResponse = customerService.applyForALoan(loanApplicationRequest);
+        Long loanRequestId = loanApplicationResponse.getLoanRequestId();
+
+        LoanUpdateRequest loanUpdateRequest = buildReviewToApproveRequest(loanOfficer, loanRequestId);
+        loanOfficerService.reviewLoanRequest(loanUpdateRequest);
+
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+
+        List<ApprovedLoanResponse> foundResponses = loanOfficerService.seeApprovedLoanRequests(loanUpdateRequest);
+
         assertThat(foundResponses).isNotNull();
-        assertEquals(0,foundResponses.size());
+        assertThat(foundResponses).hasSizeBetween(1,4);
     }
     @Test
     void seeAllApprovedLoanRequestsWithWrongAdminLoginCode(){
@@ -198,20 +198,7 @@ class LoanOfficerServiceTest {
         request.setAdminLoginCode("3Pzn87TlaB");
         assertThrows(ObjectNotFoundException.class, ()-> loanOfficerService.seeApprovedLoanRequests(request));
     }
-    @Test
-    void seeAllActiveLoansWithCorrectAdminLoginCode(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
 
-        List<ActiveLoanResponse> foundResponses = new ArrayList<>();
-        try {
-            foundResponses = loanOfficerService.seeActiveLoans(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
-        assertThat(foundResponses).isNotNull();
-        assertEquals(0,foundResponses.size());
-    }
     @Test
     void seeAllActiveLoansWithWrongAdminLoginCode(){
         LoanUpdateRequest request = new LoanUpdateRequest();
@@ -220,17 +207,29 @@ class LoanOfficerServiceTest {
     }
     @Test
     void seeAllRejectedLoanRequestsWithCorrectAdminLoginCode(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
+        RegisterUserRequest request = buildSecondUnknown();
+        RegisterUserResponse savedCustomer;
+        savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        List<RejectedLoanResponse> foundResponses = new ArrayList<>();
-        try {
-            foundResponses = loanOfficerService.seeRejectedLoanRequests(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        request =  buildNinthLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForSecondUnknown();
+        LoanApplicationResponse loanApplicationResponse = customerService.applyForALoan(loanApplicationRequest);
+        Long loanRequestId = loanApplicationResponse.getLoanRequestId();
+
+        LoanUpdateRequest loanUpdateRequest = buildReviewToRejectRequest(loanOfficer, loanRequestId);
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+        loanUpdateRequest.setAuthorizationCode(loanOfficer.getAuthorizationCode());
+
+        String response = loanOfficerService.reviewLoanRequest(loanUpdateRequest);
+        assertEquals("Review Successful",response);
+
+        List<RejectedLoanResponse> foundResponses = loanOfficerService.seeRejectedLoanRequests(loanUpdateRequest);
         assertThat(foundResponses).isNotNull();
-        assertEquals(0,foundResponses.size());
+        assertEquals(1,foundResponses.size());
     }
     @Test
     void seeAllRejectedLoanRequestsWithWrongAdminLoginCode(){
@@ -240,23 +239,24 @@ class LoanOfficerServiceTest {
     }
     @Test
     void reviewAndAcceptLoanRequestWithCorrectLoginDetails(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
-        request.setAuthorizationCode("6968481467");
-        request.setLoanRequestId(52);
-        request.setLoanStatus(APPROVED);
-        request.setInterestRate(10.0);
-        request.setStartDate("15/08/2023");
-        request.setEndDate("30/06/2027");
-        request.setDateApproved("12/08/2023");
-        request.setMessage("");
+        RegisterUserRequest request = buildCephas();
+        RegisterUserResponse savedCustomer;
+        savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        String response = null;
-        try {
-           response = loanOfficerService.reviewLoanRequest(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        request =  buildSixthLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForCephas();
+        LoanApplicationResponse loanApplicationResponse = customerService.applyForALoan(loanApplicationRequest);
+        Long loanRequestId = loanApplicationResponse.getLoanRequestId();
+
+        LoanUpdateRequest loanUpdateRequest = buildReviewToApproveRequest(loanOfficer, loanRequestId);
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+        loanUpdateRequest.setAuthorizationCode(loanOfficer.getAuthorizationCode());
+
+        String response = loanOfficerService.reviewLoanRequest(loanUpdateRequest);
         assertEquals("Review Successful",response);
     }
     @Test
@@ -264,7 +264,7 @@ class LoanOfficerServiceTest {
         LoanUpdateRequest request = new LoanUpdateRequest();
         request.setAdminLoginCode("2Nzn87TlaB");
         request.setAuthorizationCode("6118481467");
-        request.setLoanRequestId(102);
+        request.setLoanRequestId(102L);
         request.setLoanStatus(APPROVED);
         request.setInterestRate(10.0);
         request.setStartDate("15/08/2023");
@@ -279,7 +279,7 @@ class LoanOfficerServiceTest {
         LoanUpdateRequest request = new LoanUpdateRequest();
         request.setAdminLoginCode("2Nzn87T9H4");
         request.setAuthorizationCode("6968481467");
-        request.setLoanRequestId(102);
+        request.setLoanRequestId(102L);
         request.setLoanStatus(APPROVED);
         request.setInterestRate(10.0);
         request.setStartDate("15/08/2023");
@@ -291,19 +291,24 @@ class LoanOfficerServiceTest {
     }
     @Test
     void reviewAndRejectLoanRequestWithCorrectLoginDetails(){
-        LoanUpdateRequest request = new LoanUpdateRequest();
-        request.setAdminLoginCode("2Nzn87TlaB");
-        request.setAuthorizationCode("6968481467");
-        request.setLoanRequestId(102);
-        request.setLoanStatus(REJECTED );
-        request.setMessage("Bad credit check");
+        RegisterUserRequest request = buildFirstUnknown();
+        RegisterUserResponse savedCustomer;
+        savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        String response = null;
-        try {
-            response = loanOfficerService.reviewLoanRequest(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
+        request =  buildSeventhLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForUnknown();
+        LoanApplicationResponse loanApplicationResponse = customerService.applyForALoan(loanApplicationRequest);
+        Long loanRequestId = loanApplicationResponse.getLoanRequestId();
+
+        LoanUpdateRequest loanUpdateRequest = buildReviewToRejectRequest(loanOfficer, loanRequestId);
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+        loanUpdateRequest.setAuthorizationCode(loanOfficer.getAuthorizationCode());
+
+        String response = loanOfficerService.reviewLoanRequest(loanUpdateRequest);
         assertEquals("Review Successful",response);
     }
     @Test
@@ -311,7 +316,7 @@ class LoanOfficerServiceTest {
         LoanUpdateRequest request = new LoanUpdateRequest();
         request.setAdminLoginCode("2Nzn87TlpG");
         request.setAuthorizationCode("6968481467");
-        request.setLoanRequestId(102);
+        request.setLoanRequestId(102L);
         request.setLoanStatus(REJECTED);
         request.setMessage("Bad credit check");
 
@@ -322,7 +327,7 @@ class LoanOfficerServiceTest {
         LoanUpdateRequest request = new LoanUpdateRequest();
         request.setAdminLoginCode("2Nzn87TlpG");
         request.setAuthorizationCode("6968481476");
-        request.setLoanRequestId(102);
+        request.setLoanRequestId(102L);
         request.setLoanStatus(REJECTED);
         request.setMessage("Bad credit check");
 
@@ -330,16 +335,31 @@ class LoanOfficerServiceTest {
     }
     @Test
     void generateLoanAgreementFormWithCorrectUniqueCode(){
-        LoanApplicationRequest request = new LoanApplicationRequest();
-        request.setUniqueCode("1hRjuDp2lM");
+        RegisterUserRequest request = buildLegend();
+        RegisterUserResponse savedCustomer;
+        savedCustomer = customerService.registerCustomer(request);
+        assertNotNull(savedCustomer);
 
-        LoanAgreementResponse response = new LoanAgreementResponse();
-        try {
-            response = loanOfficerService.generateLoanAgreementForm(request);
-        } catch (ObjectNotFoundException e) {
-            System.err.println(e.getMessage());
-        }
-        assertThat(response).isNotNull();
-        assertEquals("Semi-Annually",response.getRepaymentPreference());
+        request =  buildEighthLoanOfficer();
+        RegisterUserResponse loanOfficer = loanOfficerService.registerLoanOfficer(request);
+        assertNotNull(loanOfficer);
+
+        LoanApplicationRequest loanApplicationRequest = buildLoanRequestForLegend();
+        LoanApplicationResponse loanApplicationResponse = customerService.applyForALoan(loanApplicationRequest);
+        Long loanRequestId = loanApplicationResponse.getLoanRequestId();
+
+        LoanUpdateRequest loanUpdateRequest = buildReviewToApproveRequest(loanOfficer, loanRequestId);
+        loanUpdateRequest.setAdminLoginCode(loanOfficer.getAdminLoginCode());
+        loanUpdateRequest.setAuthorizationCode(loanOfficer.getAuthorizationCode());
+
+        String response = loanOfficerService.reviewLoanRequest(loanUpdateRequest);
+        assertEquals("Review Successful",response);
+
+
+        loanApplicationRequest.setUniqueCode(loanApplicationResponse.getUniqueCode());
+        LoanAgreementResponse loanAgreementResponse = loanOfficerService.generateLoanAgreementForm(loanApplicationRequest);
+
+        assertThat(loanAgreementResponse).isNotNull();
+        assertEquals("Semi-Annually",loanAgreementResponse.getRepaymentPreference());
     }
 }

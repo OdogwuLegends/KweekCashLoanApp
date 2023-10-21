@@ -1,182 +1,72 @@
 package com.example.KweekCashLoanApp.controllers;
 
 import com.example.KweekCashLoanApp.dtos.requests.*;
+import com.example.KweekCashLoanApp.dtos.responses.LoanApplicationResponse;
 import com.example.KweekCashLoanApp.dtos.responses.LoginResponse;
-import com.example.KweekCashLoanApp.error.IncorrectDetailsException;
+import com.example.KweekCashLoanApp.dtos.responses.RegisterUserResponse;
+import com.example.KweekCashLoanApp.dtos.responses.UpdateUserResponse;
 import com.example.KweekCashLoanApp.error.ObjectNotFoundException;
 import com.example.KweekCashLoanApp.services.interfaces.ICustomerService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.example.KweekCashLoanApp.utils.ApiValues.*;
 
 @Slf4j
 @CrossOrigin("*")
 @RestController
-@RequestMapping("/customer")
+@AllArgsConstructor
+@RequestMapping(CUSTOMER)
 public class CustomerController {
     private final ICustomerService customerService;
     private final LoanOfficerController loanOfficerController;
-    @Autowired
-    public CustomerController(ICustomerService customerService,LoanOfficerController loanOfficerController){
-        this.customerService = customerService;
-        this.loanOfficerController = loanOfficerController;
-    }
 
-    @PostMapping("/signUp")
-    public String createAccount(@RequestBody RegisterUserRequest request){
-        try {
-            return customerService.registerCustomer(request).toString();
-        } catch (IncorrectDetailsException e) {
-            throw new RuntimeException(e);
-        }
+    @PostMapping(SIGN_UP)
+    public ResponseEntity<RegisterUserResponse> createAccount(@RequestBody RegisterUserRequest request){
+        RegisterUserResponse response = customerService.registerCustomer(request);
+        return ResponseEntity.ok().body(response);
     }
 
 
-    @PostMapping("/signIn")
-    public String logIn(@RequestBody LoginRequest request){
-        LoginResponse loginResponse = null;
-        try {
-            loginResponse = customerService.logIn(request);
-        } catch (ObjectNotFoundException exception){
-            log.info(exception.getMessage());
-
-            loginResponse = new LoginResponse();
-            loginResponse.setMessage(exception.getMessage());
-
-        }
-        return loginResponse.getMessage();
+    @PostMapping(SIGN_IN)
+    public ResponseEntity<LoginResponse> logIn(@RequestBody LoginRequest request){
+        LoginResponse loginResponse = customerService.logIn(request);
+        return ResponseEntity.ok().body(loginResponse);
     }
 
 
-    @PostMapping("/applyForLoan")
-    public String applyForALoan(@RequestBody LoanApplicationRequest request){
-        return customerService.applyForALoan(request).toString();
+    @PostMapping(APPLY_FOR_LOAN)
+    public ResponseEntity<LoanApplicationResponse> applyForALoan(@RequestBody LoanApplicationRequest request){
+        LoanApplicationResponse response = customerService.applyForALoan(request);
+        return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/checkLoanStatus")
-    public String checkLoanStatus(@RequestBody LoanApplicationRequest request){
-        try {
-            return customerService.checkApplicationStatus(request).getMessage();
-        } catch (IncorrectDetailsException e) {
-            throw new RuntimeException(e);
-        }
+    @GetMapping(CHECK_LOAN_STATUS)
+    public ResponseEntity<LoanApplicationResponse> checkLoanStatus(@RequestBody LoanApplicationRequest request){
+        LoanApplicationResponse response = customerService.checkApplicationStatus(request);
+        return ResponseEntity.ok().body(response);
     }
 
-    @GetMapping("/generateLoanAgreement")
-    public String generateLoanAgreement(@RequestBody LoanApplicationRequest request){
-        return loanOfficerController.generateLoanAgreement(request);
+    @GetMapping(GENERATE_LOAN_AGREEMENT)
+    public ResponseEntity<String> generateLoanAgreement(@RequestBody LoanApplicationRequest request){
+        return ResponseEntity.ok().body(loanOfficerController.generateLoanAgreement(request).toString());
     }
 
-    @PutMapping("/updateDetails")
-    public String editCustomerDetails(@RequestBody UpdateUserRequest request){
-        try {
-            return customerService.updateCustomerDetails(request).getMessage();
-        } catch (ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    @PutMapping(UPDATE_USER_DETAILS)
+    public ResponseEntity<UpdateUserResponse> editCustomerDetails(@RequestBody UpdateUserRequest request){
+        UpdateUserResponse response = customerService.updateCustomerDetails(request);
+        return ResponseEntity.ok().body(response);
     }
 
-    @PutMapping("/makePayment")
-    public String makePayment(@RequestBody PaymentRequest request){
-        try {
-            return customerService.makePayment(request);
-        } catch (ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    @PutMapping(MAKE_PAYMENT)
+    public ResponseEntity<String> makePayment(@RequestBody PaymentRequest request){
+        return ResponseEntity.ok().body(customerService.makePayment(request));
     }
 
-    @GetMapping("/checkLoanBalance")
-    public String checkLoanBalance(@RequestBody PaymentRequest request){
-        try {
-            return customerService.checkLoanBalance(request);
-        } catch (ObjectNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    @GetMapping(CHECK_LOAN_BALANCE)
+    public ResponseEntity<String> checkLoanBalance(@RequestBody PaymentRequest request){
+        return ResponseEntity.ok().body(customerService.checkLoanBalance(request));
     }
-
-
-
-
-
-//    @PostMapping("/signUp")
-//    public ResponseEntity<?> createAccount(@RequestBody RegisterUserRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.registerCustomer(request))
-//                    , HttpStatus.FOUND);
-//        } catch (IncorrectDetailsException exception) {
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-//    @PostMapping("/signIn")
-//    public ResponseEntity<?> logIn(@RequestBody LoginRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.logIn(request))
-//                    , HttpStatus.FOUND);
-//        } catch (ObjectNotFoundException exception){
-//            log.info(exception.getMessage());
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-//    @PostMapping("/applyForLoan")
-//    public ResponseEntity<?> applyForALoan(@RequestBody LoanApplicationRequest request){
-//        return new ResponseEntity<>(new ApiResponse(true, customerService.applyForALoan(request))
-//                , HttpStatus.FOUND);
-//    }
-//    @GetMapping("/checkLoanStatus")
-//    public ResponseEntity<?> checkLoanStatus(@RequestBody LoanApplicationRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.checkApplicationStatus(request))
-//                    , HttpStatus.FOUND);
-//        } catch (IncorrectDetailsException exception){
-//            log.info(exception.getMessage());
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-//    @GetMapping("/generateLoanAgreement")
-//    public ResponseEntity<?> generateLoanAgreement(@RequestBody LoanApplicationRequest request) {
-//        return new ResponseEntity<>(new ApiResponse(true, loanOfficerController.generateLoanAgreement(request))
-//                , HttpStatus.FOUND);
-//    }
-//
-//    @PutMapping("/updateDetails")
-//    public ResponseEntity<?> editCustomerDetails(@RequestBody UpdateUserRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.updateCustomerDetails(request))
-//                    , HttpStatus.FOUND);
-//        } catch (ObjectNotFoundException exception){
-//            log.info(exception.getMessage());
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    @PutMapping("/makePayment")
-//    public ResponseEntity<?> makePayment(@RequestBody PaymentRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.makePayment(request))
-//                    , HttpStatus.FOUND);
-//        } catch (ObjectNotFoundException exception){
-//            log.info(exception.getMessage());
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-//
-//    @GetMapping("/checkLoanBalance")
-//    public ResponseEntity<?> checkLoanBalance(@RequestBody PaymentRequest request){
-//        try {
-//            return new ResponseEntity<>(new ApiResponse(true, customerService.checkLoanBalance(request))
-//                    , HttpStatus.FOUND);
-//        } catch (ObjectNotFoundException exception){
-//            log.info(exception.getMessage());
-//            return new ResponseEntity<>(new ApiResponse(false, exception.getMessage())
-//                    , HttpStatus.NOT_FOUND);
-//        }
-//    }
-
-
-
 }

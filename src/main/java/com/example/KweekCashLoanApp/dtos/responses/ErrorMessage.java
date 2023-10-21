@@ -1,4 +1,4 @@
-package com.example.KweekCashLoanApp.data.models;
+package com.example.KweekCashLoanApp.dtos.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

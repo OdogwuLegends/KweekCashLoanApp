@@ -11,16 +11,18 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.example.KweekCashLoanApp.utils.HardcodedValues.REJECTED_LOAN_REQUESTS;
+
 @Data
-@Entity(name = "Rejected_loan_requests")
+@Entity(name = REJECTED_LOAN_REQUESTS)
 public class RejectedLoanRequests {
 
     @Id
     @GeneratedValue
-    private long loanRequestId;
+    private Long loanRequestId;
 
     @Column(nullable = false)
-    private long customerId;
+    private Long customerId;
 
     private String uniqueCode;
 
